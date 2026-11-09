@@ -8,10 +8,14 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "src") },
   },
   test: {
-    environment: "jsdom",
+    // La lógica pura corre en Node; los tests de componentes declaran
+    // `// @vitest-environment jsdom` al inicio del archivo.
+    environment: "node",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    pool: "threads",
+    maxWorkers: 2,
     env: { TZ: "UTC" },
   },
 });
