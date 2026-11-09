@@ -4,8 +4,6 @@ import { es } from "date-fns/locale";
 export const TIMEZONE = "America/Argentina/Buenos_Aires";
 const LOCALE = "es-AR";
 
-const currencyFormatter = new Intl.NumberFormat(LOCALE, { style: "currency", currency: "ARS" });
-
 const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
   timeZone: TIMEZONE,
   day: "2-digit",
@@ -23,18 +21,38 @@ const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
   hourCycle: "h23",
 });
 
-/** `$ 1.234,56` — el signo negativo siempre adelante (`-$ 50,00`). */
-export function formatCurrency(value: number): string {
-  const formatted = currencyFormatter.format(Math.abs(value));
-  return value < 0 ? `-${formatted}` : formatted;
+/** `$ 1.234,56` — el signo negativo siempre adelante (`-$ 50,00`). `decimals: 0` para indicadores. */
+export function formatCurrency(value: number, opts: { decimals?: number } = {}): string {
+  const decimals = opts.decimals ?? 2;
+  const formatted = new Intl.NumberFormat(LOCALE, {
+    style: "currency",
+    currency: "ARS",
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Math.abs(value));
+  return value < 0 && Math.abs(value) >= 0.5 * 10 ** -decimals ? `-${formatted}` : formatted;
 }
 
-/** `1.234,5`. Con `decimals` fija la cantidad de decimales; sin él muestra hasta 3. */
-export function formatNumber(value: number, opts: { decimals?: number } = {}): string {
-  const { decimals } = opts;
+/** Montos abreviados para ejes y tooltips: `$ 850 mil`, `$ 1,2 M`, `$ 1.500 M`. */
+export function formatCompactCurrency(value: number): string {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  let body: string;
+  if (abs >= 1_000_000) body = `${formatNumber(abs / 1_000_000, { maxDecimals: 1 })} M`;
+  else if (abs >= 1_000) body = `${formatNumber(abs / 1_000, { maxDecimals: 1 })} mil`;
+  else body = formatNumber(Math.round(abs));
+  return `${sign}$ ${body}`;
+}
+
+/** `1.234,5`. `decimals` fija los decimales; `maxDecimals` (por defecto 3) sólo pone un tope. */
+export function formatNumber(
+  value: number,
+  opts: { decimals?: number; maxDecimals?: number } = {},
+): string {
+  const { decimals, maxDecimals = 3 } = opts;
   return new Intl.NumberFormat(LOCALE, {
     minimumFractionDigits: decimals ?? 0,
-    maximumFractionDigits: decimals ?? 3,
+    maximumFractionDigits: decimals ?? maxDecimals,
   }).format(value);
 }
 
@@ -62,6 +80,28 @@ export function formatDate(value: string | Date): string {
 /** `DD/MM/AAAA HH:mm` en hora de Buenos Aires. */
 export function formatDateTime(value: string | Date): string {
   return dateTimeFormatter.format(toDate(value)).replace(",", "");
+}
+
+const MONTHS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+/** Mes `YYYY-MM`: `short` → `nov` (ejes), `long` → `noviembre de 2026` (tooltips). */
+export function formatMonth(month: string, style: "short" | "long"): string {
+  const [year, m] = month.split("-");
+  const name = MONTHS[Number(m) - 1] ?? month;
+  return style === "short" ? name.slice(0, 3) : `${name} de ${year}`;
 }
 
 /** `hace 5 minutos`. */

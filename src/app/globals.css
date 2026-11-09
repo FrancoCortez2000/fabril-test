@@ -132,9 +132,11 @@
 
   --chart-1: var(--brand);
   --chart-2: #64748b;
-  --chart-3: #2f6f8f;
-  --chart-4: #b45f3c;
+  --chart-3: #2a6db5; /* entradas — validado dataviz (claro) */
+  --chart-4: #b45f3c; /* salidas */
   --chart-5: #94a3b8;
+  --chart-grid: #e3e6ea;
+  --chart-highlight-stroke: #9a6e00;
 
   --sidebar: #eceef1;
   --sidebar-foreground: var(--foreground);
@@ -171,9 +173,11 @@
   --status-pending: #e0a93b;
 
   --chart-2: #7d8a99;
-  --chart-3: #5aa3c4;
-  --chart-4: #d9825e;
+  --chart-3: #4f8fd6; /* validado dataviz (oscuro) */
+  --chart-4: #c96f3f;
   --chart-5: #4b5563;
+  --chart-grid: #262c34;
+  --chart-highlight-stroke: #f2b71f;
 
   --sidebar: #181c22;
   --sidebar-accent: #232931;

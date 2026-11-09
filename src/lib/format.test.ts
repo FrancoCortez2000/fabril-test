@@ -1,7 +1,9 @@
 import {
+  formatCompactCurrency,
   formatCurrency,
   formatDate,
   formatDateTime,
+  formatMonth,
   formatNumber,
   formatPercent,
   formatQuantity,
@@ -18,6 +20,25 @@ describe("formatCurrency", () => {
   });
   test("pone el signo negativo adelante", () => {
     expect(n(formatCurrency(-50))).toBe("-$ 50,00");
+  });
+});
+
+describe("formatCurrency sin centavos", () => {
+  test("redondea a pesos enteros para indicadores", () => {
+    expect(n(formatCurrency(48730215.4, { decimals: 0 }))).toBe("$ 48.730.215");
+  });
+});
+
+describe("formatCompactCurrency", () => {
+  test.each([
+    [1234567, "$ 1,2 M"],
+    [850000, "$ 850 mil"],
+    [12500, "$ 12,5 mil"],
+    [950, "$ 950"],
+    [1500000000, "$ 1.500 M"],
+    [0, "$ 0"],
+  ])("abrevia %d como %s", (value, expected) => {
+    expect(n(formatCompactCurrency(value))).toBe(expected);
   });
 });
 
@@ -78,5 +99,15 @@ describe("parseDecimal", () => {
 
   test.each([["abc"], [""], ["1,2,3"]])("rechaza %j", (input) => {
     expect(parseDecimal(input)).toBeNull();
+  });
+});
+
+describe("formatMonth", () => {
+  test("abreviado para ejes", () => {
+    expect(formatMonth("2026-11", "short")).toBe("nov");
+    expect(formatMonth("2026-01", "short")).toBe("ene");
+  });
+  test("completo para tooltips", () => {
+    expect(formatMonth("2026-11", "long")).toBe("noviembre de 2026");
   });
 });
