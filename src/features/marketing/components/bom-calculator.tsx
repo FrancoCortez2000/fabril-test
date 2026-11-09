@@ -1,11 +1,11 @@
 "use client";
 
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleAlert, CircleCheck, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { NumberInput } from "@/components/forms/number-input";
 import { calculateMaterialRequirements, type BomLineInput } from "@/features/production/logic";
-import { formatPercent, formatQuantity } from "@/lib/format";
+import { formatNumber, formatPercent, formatQuantity } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /** Receta de ejemplo: la misma regla de cálculo que usa el sistema (features/production/logic). */
@@ -20,7 +20,8 @@ const MAX_QTY = 1_000_000;
 
 export function BomCalculator() {
   const [qty, setQty] = useState<number | null>(1000);
-  const planned = Math.min(Math.max(0, Math.round(qty ?? 0)), MAX_QTY);
+  const valid = qty !== null && Number.isInteger(qty) && qty >= 1 && qty <= MAX_QTY;
+  const planned = valid ? qty : 0;
   const requirements = calculateMaterialRequirements({
     plannedQty: planned,
     outputQty: 1,
@@ -46,7 +47,14 @@ export function BomCalculator() {
             <label htmlFor="calc-qty" className="text-13 font-medium">
               Cantidad a fabricar
             </label>
-            <NumberInput id="calc-qty" value={qty} onChange={setQty} unit="u" />
+            <NumberInput
+              id="calc-qty"
+              value={qty}
+              onChange={setQty}
+              unit="u"
+              aria-invalid={!valid}
+              aria-describedby="calc-status"
+            />
           </div>
           <p className="text-xs text-muted-foreground">
             Receta por unidad · desperdicio previsto {formatPercent(WASTE_PCT)}
@@ -69,17 +77,21 @@ export function BomCalculator() {
                 <th scope="row" className="py-2.5 text-left font-normal">
                   {r.name}
                 </th>
-                <td className="py-2.5 text-right">{formatQuantity(r.required, r.unitCode)}</td>
+                <td className="py-2.5 text-right">
+                  {valid ? formatQuantity(r.required, r.unitCode) : "—"}
+                </td>
                 <td className="py-2.5 text-right text-muted-foreground">
                   {formatQuantity(r.available, r.unitCode)}
                 </td>
                 <td
                   className={cn(
                     "py-2.5 text-right",
-                    r.shortage > 0 ? "font-semibold text-status-delayed" : "text-muted-foreground",
+                    valid && r.shortage > 0
+                      ? "font-semibold text-status-delayed"
+                      : "text-muted-foreground",
                   )}
                 >
-                  {r.shortage > 0 ? formatQuantity(r.shortage, r.unitCode) : "—"}
+                  {valid && r.shortage > 0 ? formatQuantity(r.shortage, r.unitCode) : "—"}
                 </td>
               </tr>
             ))}
@@ -87,16 +99,27 @@ export function BomCalculator() {
         </table>
 
         <div
+          id="calc-status"
           role="status"
           aria-live="polite"
           className={cn(
             "flex items-start gap-2.5 rounded-md border px-3 py-2.5 text-13",
-            shortages.length
-              ? "border-status-delayed/30 bg-status-delayed/5"
-              : "border-status-completed/30 bg-status-completed/5",
+            !valid
+              ? "border-border bg-surface-2/60"
+              : shortages.length
+                ? "border-status-delayed/30 bg-status-delayed/5"
+                : "border-status-completed/30 bg-status-completed/5",
           )}
         >
-          {shortages.length ? (
+          {!valid ? (
+            <>
+              <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+              <p>
+                Ingresá una cantidad entera entre 1 y {formatNumber(MAX_QTY)} para calcular los
+                materiales.
+              </p>
+            </>
+          ) : shortages.length ? (
             <>
               <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0 text-status-delayed" />
               <p>

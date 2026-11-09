@@ -29,3 +29,12 @@ test("rechaza envíos con el campo trampa completo (spam)", () => {
 test("rechaza un teléfono demasiado corto si se completa", () => {
   expect(demoRequestSchema.safeParse({ ...minimal, phone: "123" }).success).toBe(false);
 });
+
+test("acepta un email pegado con espacios y lo normaliza", () => {
+  const result = demoRequestSchema.safeParse({
+    ...minimal,
+    email: "  Marta@EnvasesParana.com.ar ",
+  });
+  expect(result.success).toBe(true);
+  expect(result.data?.email).toBe("marta@envasesparana.com.ar");
+});

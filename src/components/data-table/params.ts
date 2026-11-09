@@ -71,8 +71,15 @@ export function serializeTableParams(p: Partial<TableParams>): URLSearchParams {
   return sp;
 }
 
+/** Página efectiva: nunca más allá de la última (ni menor que 1). La consulta SQL de la Etapa 4 usa lo mismo. */
+export function clampPage(page: number, total: number, pageSize: number): number {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  return Math.min(Math.max(1, page), pageCount);
+}
+
 /** Sólo para datos de ejemplo: en la Etapa 4 la paginación la resuelve la consulta. */
-export function paginate<T>(rows: T[], p: TableParams): { rows: T[]; total: number } {
-  const start = (p.page - 1) * p.pageSize;
-  return { rows: rows.slice(start, start + p.pageSize), total: rows.length };
+export function paginate<T>(rows: T[], p: TableParams): { rows: T[]; total: number; page: number } {
+  const page = clampPage(p.page, rows.length, p.pageSize);
+  const start = (page - 1) * p.pageSize;
+  return { rows: rows.slice(start, start + p.pageSize), total: rows.length, page };
 }

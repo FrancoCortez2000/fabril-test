@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/layout/skip-link";
 import type { Metadata } from "next";
 
 import { DemoSection } from "@/features/marketing/components/demo-section";
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <>
+      <SkipLink />
       <SiteHeader />
       <main id="contenido">
         <Hero />

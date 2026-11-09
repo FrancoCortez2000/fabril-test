@@ -16,12 +16,11 @@ test("con 1.000 bidones avisa el faltante de polietileno", () => {
   expect(n(screen.getByRole("status").textContent)).toContain("Faltan 57,5 kg de Polietileno AD");
 });
 
-test("recalcula al cambiar la cantidad", async () => {
+test("recalcula mientras se escribe, sin salir del campo", async () => {
   render(<BomCalculator />);
   const input = screen.getByLabelText("Cantidad a fabricar");
   await userEvent.clear(input);
   await userEvent.type(input, "2000");
-  await userEvent.tab();
   expect(n(within(polyetyleneRow()).getAllByRole("cell")[0]!.textContent)).toBe("515 kg");
 });
 
@@ -33,3 +32,16 @@ test("sin faltantes confirma que alcanza el material", async () => {
   await userEvent.tab();
   expect(screen.getByRole("status").textContent).toContain("Hay material suficiente");
 });
+
+test.each([["abc"], ["-5"], ["2,5"], ["2000000"]])(
+  "una cantidad inválida (%s) pide corregirla",
+  async (value) => {
+    render(<BomCalculator />);
+    const input = screen.getByLabelText("Cantidad a fabricar");
+    await userEvent.clear(input);
+    await userEvent.type(input, value);
+    expect(screen.getByRole("status").textContent).toContain(
+      "Ingresá una cantidad entera entre 1 y 1.000.000",
+    );
+  },
+);

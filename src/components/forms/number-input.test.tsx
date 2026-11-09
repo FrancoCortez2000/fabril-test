@@ -38,6 +38,15 @@ test("acepta coma decimal y muestra el valor formateado al salir del campo", asy
   expect(input).toHaveValue("0,25");
 });
 
+test("informa el valor mientras se escribe, sin esperar a salir del campo", async () => {
+  const onChange = vi.fn();
+  render(<Harness onChange={onChange} />);
+
+  await userEvent.type(screen.getByLabelText("Cantidad"), "-5");
+
+  expect(onChange).toHaveBeenLastCalledWith(-5);
+});
+
 test("con decimales fijos completa los ceros", async () => {
   render(<Harness onChange={() => {}} decimals={3} />);
   const input = screen.getByLabelText("Cantidad");
@@ -48,7 +57,16 @@ test("con decimales fijos completa los ceros", async () => {
   expect(input).toHaveValue("0,250");
 });
 
-test("un texto que no es número queda marcado como inválido", async () => {
+test("redondea el valor a los decimales configurados", async () => {
+  const onChange = vi.fn();
+  render(<Harness onChange={onChange} decimals={2} />);
+
+  await userEvent.type(screen.getByLabelText("Cantidad"), "10,555");
+
+  expect(onChange).toHaveBeenLastCalledWith(10.56);
+});
+
+test("un texto que no es número se informa como NaN (distinto de vacío) y queda inválido", async () => {
   const onChange = vi.fn();
   render(<Harness onChange={onChange} />);
   const input = screen.getByLabelText("Cantidad");
@@ -56,6 +74,18 @@ test("un texto que no es número queda marcado como inválido", async () => {
   await userEvent.type(input, "abc");
   await userEvent.tab();
 
-  expect(onChange).toHaveBeenLastCalledWith(null);
+  expect(onChange).toHaveBeenLastCalledWith(Number.NaN);
   expect(input).toHaveAttribute("aria-invalid", "true");
+  expect(input).toHaveValue("abc");
+});
+
+test("vaciar el campo informa null", async () => {
+  const onChange = vi.fn();
+  render(<Harness onChange={onChange} />);
+  const input = screen.getByLabelText("Cantidad");
+
+  await userEvent.type(input, "12");
+  await userEvent.clear(input);
+
+  expect(onChange).toHaveBeenLastCalledWith(null);
 });

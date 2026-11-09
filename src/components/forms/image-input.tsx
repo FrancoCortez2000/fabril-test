@@ -61,17 +61,20 @@ export function ImageInput({
         )}
       </div>
       <div className="space-y-2">
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          accept={ACCEPTED_IMAGE_TYPES.join(",")}
-          className="sr-only"
-          onChange={(e) => handleFile(e.target.files?.[0])}
-        />
         <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            id={inputId}
+            type="file"
+            accept={ACCEPTED_IMAGE_TYPES.join(",")}
+            className="peer sr-only"
+            onChange={(e) => handleFile(e.target.files?.[0])}
+          />
           <Button type="button" variant="outline" size="sm" asChild>
-            <label htmlFor={inputId}>
+            <label
+              htmlFor={inputId}
+              className="peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
+            >
               {preview ? "Cambiar imagen" : `Elegir ${label.toLowerCase()}`}
             </label>
           </Button>

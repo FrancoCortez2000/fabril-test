@@ -2,10 +2,10 @@
 
 import { MoreHorizontal, Package, PackagePlus, Pencil } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { columnHelper, DataTable, type DataColumn } from "@/components/data-table/data-table";
-import type { TableParams } from "@/components/data-table/params";
+import { serializeTableParams, type TableParams } from "@/components/data-table/params";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,9 +74,19 @@ export function ProductsTable({
     open: openNew,
   });
 
+  // `?nuevo=1` puede llegar estando ya en la página (menú de comandos): abrir el alta.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza con la URL
+    if (openNew) setDialog({ open: true });
+  }, [openNew]);
+
   function setOpen(open: boolean) {
     setDialog((d) => ({ ...d, open }));
-    if (!open && openNew) router.replace(pathname, { scroll: false });
+    if (!open && openNew) {
+      // Quitar sólo `nuevo`, conservando búsqueda, filtros, orden y página.
+      const qs = serializeTableParams(params).toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }
   }
 
   const columns: DataColumn<ProductRow>[] = [

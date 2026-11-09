@@ -28,13 +28,25 @@ export type NumberInputProps = NativeInputProps & {
 };
 
 function display(value: number | null, decimals?: number): string {
-  if (value === null) return "";
+  if (value === null || Number.isNaN(value)) return "";
   return formatNumber(value, decimals === undefined ? {} : { decimals });
 }
 
+function roundTo(value: number, decimals?: number): number {
+  if (decimals === undefined) return value;
+  const factor = 10 ** decimals;
+  return Math.round((value + Number.EPSILON) * factor) / factor;
+}
+
 /**
- * Campo numérico con formato argentino: acepta `0,250` o `1.234,5`
- * y al salir del campo muestra el valor formateado.
+ * Campo numérico con formato argentino: acepta `0,250` o `1.234,5`.
+ *
+ * Contrato de `onChange` (se llama en cada tecla, no sólo al salir del campo):
+ * - número válido → el número, redondeado a `decimals` si se indicó;
+ * - campo vacío → `null`;
+ * - texto que no es un número → `NaN`, para que la validación (Zod) lo rechace
+ *   en lugar de confundirlo con un campo vacío.
+ * Al salir del campo, un valor válido se muestra formateado.
  */
 export function NumberInput({
   value,
@@ -51,13 +63,26 @@ export function NumberInput({
   const [draft, setDraft] = useState<string | null>(null);
   const [invalid, setInvalid] = useState(false);
 
-  const text = draft ?? (invalid ? "" : display(value, decimals));
+  const text = draft ?? display(value, decimals);
+
+  function interpret(raw: string): number | null {
+    if (raw.trim() === "") return null;
+    const parsed = parseDecimal(raw);
+    return parsed === null ? Number.NaN : roundTo(parsed, decimals);
+  }
+
+  function handleChange(raw: string) {
+    setDraft(raw);
+    const next = interpret(raw);
+    if (next === null || !Number.isNaN(next)) setInvalid(false);
+    onChange(next);
+  }
 
   function commit(raw: string) {
-    const parsed = parseDecimal(raw);
-    const isInvalid = raw.trim() !== "" && parsed === null;
+    const next = interpret(raw);
+    const isInvalid = next !== null && Number.isNaN(next);
     setInvalid(isInvalid);
-    onChange(parsed);
+    // Un valor válido se vuelve a mostrar formateado; uno inválido queda como se escribió.
     setDraft(isInvalid ? raw : null);
   }
 
@@ -80,7 +105,7 @@ export function NumberInput({
           setDraft(text);
           onFocus?.(e);
         }}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onBlur={(e) => {
           commit(e.target.value);
           onBlur?.(e);

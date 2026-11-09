@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/layout/skip-link";
 import type { Metadata } from "next";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
@@ -15,6 +16,7 @@ export default function AppLayout({ children }: LayoutProps<"/app">) {
 
   return (
     <div className="flex min-h-dvh w-full">
+      <SkipLink />
       <AppSidebar session={session} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar session={session} />

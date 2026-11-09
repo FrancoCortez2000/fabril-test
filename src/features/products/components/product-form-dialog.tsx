@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -70,8 +70,16 @@ export function ProductFormDialog({
     reValidateMode: "onChange",
   });
 
+  // Elemento que tenía el foco al abrir: ahí vuelve el foco al cerrar.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
-    if (open) form.reset(initialValues ?? EMPTY_PRODUCT);
+    if (open) {
+      form.reset(initialValues ?? EMPTY_PRODUCT);
+      const active = document.activeElement;
+      returnFocusRef.current =
+        active instanceof HTMLElement && active !== document.body ? active : null;
+    }
   }, [open, initialValues, form]);
 
   async function onSubmit(values: ProductFormValues) {
@@ -89,7 +97,21 @@ export function ProductFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent
+        className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl"
+        onOpenAutoFocus={(e) => {
+          // El primer elemento enfocable es el selector de imagen (invisible); empezar por el nombre.
+          e.preventDefault();
+          form.setFocus("name");
+        }}
+        onCloseAutoFocus={(e) => {
+          const target = returnFocusRef.current;
+          if (target?.isConnected) {
+            e.preventDefault();
+            target.focus();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{editing ? "Editar producto" : "Nuevo producto"}</DialogTitle>
           <DialogDescription>
@@ -97,7 +119,7 @@ export function ProductFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form id="product-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <FieldGroup className="gap-5">
             <ImageInput onChange={() => {}} label="Imagen" />
 
@@ -254,21 +276,21 @@ export function ProductFormDialog({
               />
             </div>
           </FieldGroup>
-        </form>
 
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={formState.isSubmitting}
-          >
-            Cancelar
-          </Button>
-          <Button type="submit" form="product-form" disabled={formState.isSubmitting}>
-            {formState.isSubmitting ? <Loader2 aria-hidden className="animate-spin" /> : null}
-            {editing ? "Guardar cambios" : "Crear producto"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter className="mt-6">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={formState.isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={formState.isSubmitting}>
+              {formState.isSubmitting ? <Loader2 aria-hidden className="animate-spin" /> : null}
+              {editing ? "Guardar cambios" : "Crear producto"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

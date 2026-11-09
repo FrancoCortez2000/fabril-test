@@ -74,3 +74,15 @@ describe("paginate", () => {
     expect(result.total).toBe(30);
   });
 });
+
+describe("paginate con una página fuera de rango", () => {
+  test("lleva a la última página existente en lugar de devolver una página vacía", () => {
+    const rows = Array.from({ length: 13 }, (_, i) => i);
+    const result = paginate(rows, { page: 5, pageSize: 25, sort: null, q: "", filters: {} });
+    expect(result.rows).toHaveLength(13);
+    expect(result.page).toBe(1);
+  });
+  test("sin filas, la página efectiva es la primera", () => {
+    expect(paginate([], { page: 3, pageSize: 25, sort: null, q: "", filters: {} }).page).toBe(1);
+  });
+});

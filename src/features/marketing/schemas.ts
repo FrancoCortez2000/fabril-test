@@ -9,7 +9,11 @@ export const demoRequestSchema = z.object({
     .trim()
     .min(2, "Ingresá el nombre de tu empresa")
     .max(120, "Máximo 120 caracteres"),
-  email: z.email("Ingresá un email válido, por ejemplo nombre@empresa.com.ar"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.email("Ingresá un email válido, por ejemplo nombre@empresa.com.ar")),
   phone: z
     .string()
     .trim()

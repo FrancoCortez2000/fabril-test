@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/layout/skip-link";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -9,6 +10,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
+      <SkipLink />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Link href="/" className="rounded-md" aria-label="FABRIL, inicio">
           <Logo />

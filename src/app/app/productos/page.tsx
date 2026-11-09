@@ -21,13 +21,13 @@ async function ProductsSection({
 }) {
   const sp = await searchParams;
   const params = parseTableParams(sp, PRODUCT_TABLE_OPTIONS);
-  const { rows, total } = paginate(queryFixtureProducts(params), params);
+  const { rows, total, page } = paginate(queryFixtureProducts(params), params);
 
   return (
     <ProductsTable
       rows={rows}
       total={total}
-      params={params}
+      params={{ ...params, page }}
       categories={FIXTURE_CATEGORIES}
       openNew={sp.nuevo === "1"}
     />
