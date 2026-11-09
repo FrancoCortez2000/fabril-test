@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { KitShowcase } from "./kit-showcase";
+
 export const metadata: Metadata = {
   title: "Sistema de diseño",
   robots: { index: false, follow: false },
@@ -148,6 +150,7 @@ export default function EstilosPage() {
           </tbody>
         </table>
       </section>
+      <KitShowcase />
     </main>
   );
 }
