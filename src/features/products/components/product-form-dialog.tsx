@@ -66,7 +66,8 @@ export function ProductFormDialog({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: initialValues ?? EMPTY_PRODUCT,
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   useEffect(() => {

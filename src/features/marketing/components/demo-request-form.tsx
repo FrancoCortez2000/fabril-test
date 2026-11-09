@@ -26,7 +26,8 @@ export function DemoRequestForm() {
   const form = useForm<DemoRequestValues>({
     resolver: zodResolver(demoRequestSchema),
     defaultValues: EMPTY,
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
   const { control, handleSubmit, formState, register } = form;
 

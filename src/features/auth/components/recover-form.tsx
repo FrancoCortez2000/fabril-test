@@ -16,7 +16,8 @@ export function RecoverForm() {
   const { control, handleSubmit, formState } = useForm<RecoverValues>({
     resolver: zodResolver(recoverSchema),
     defaultValues: { email: "" },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   async function onSubmit() {

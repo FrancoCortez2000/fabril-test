@@ -18,7 +18,8 @@ export function LoginForm() {
   const { control, handleSubmit, formState } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   async function onSubmit() {

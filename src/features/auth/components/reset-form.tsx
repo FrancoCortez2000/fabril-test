@@ -16,7 +16,8 @@ export function ResetForm() {
   const { control, handleSubmit, formState } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirm: "" },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   async function onSubmit() {
