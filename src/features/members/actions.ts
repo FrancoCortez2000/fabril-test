@@ -57,14 +57,12 @@ export const inviteMember = createAction({
       inviteUrl = inviteLink(data.properties.hashed_token, "invite");
     }
 
-    const { error: insertError } = await admin
-      .from("memberships")
-      .insert({
-        organization_id: orgId,
-        user_id: userId,
-        role: "admin",
-        invited_by: session.user.id,
-      });
+    const { error: insertError } = await admin.from("memberships").insert({
+      organization_id: orgId,
+      user_id: userId,
+      role: "admin",
+      invited_by: session.user.id,
+    });
     if (insertError) {
       if (insertError.code === "23505")
         throw new ActionError("Ese email ya tiene acceso a esta fábrica");
@@ -100,6 +98,17 @@ export const regenerateInvite = createAction({
       throw new ActionError(
         "Esta persona ya ingresó: puede recuperar su contraseña desde la pantalla de ingreso",
       );
+    // Un enlace de ingreso equivale a la cuenta: sólo si esta fábrica la invitó y no pertenece a otra.
+    const { data: allowed, error: ruleError } = await admin.rpc("admin_can_share_login_link", {
+      p_org: orgId,
+      p_user: userId,
+    });
+    if (ruleError) throw ruleError;
+    if (!allowed) {
+      throw new ActionError(
+        "No podemos generar un enlace para esta persona porque su cuenta no fue creada por esta fábrica. Pedile que use “¿Olvidaste tu contraseña?” en la pantalla de ingreso.",
+      );
+    }
 
     const { data, error: linkError } = await admin.auth.admin.generateLink({
       type: "magiclink",

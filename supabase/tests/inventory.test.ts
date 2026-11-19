@@ -173,6 +173,23 @@ describe("valorización por costo promedio ponderado", () => {
   });
 });
 
+test("con stock negativo, la compra que lo repone toma su propio costo como promedio", async () => {
+  const item = await newItem("NEG-VAL");
+  await inbound(item, 5, 80);
+  await db.su.exec("update public.organizations set allow_negative_stock = true where id = $1", [
+    org,
+  ]);
+  try {
+    await manual(item, "manual_out", 10); // queda en -5 con promedio 80
+    await inbound(item, 10, 100);
+    expect(await state(item)).toEqual({ current_stock: "5.000", avg_cost: "100.0000" });
+  } finally {
+    await db.su.exec("update public.organizations set allow_negative_stock = false where id = $1", [
+      org,
+    ]);
+  }
+});
+
 describe("anulaciones", () => {
   test("no se puede anular dos veces el mismo movimiento", async () => {
     const item = await newItem("ETQ");

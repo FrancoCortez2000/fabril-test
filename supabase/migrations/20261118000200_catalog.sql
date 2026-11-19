@@ -191,7 +191,11 @@ create policy units_select on public.units for select to authenticated using (tr
 grant select, insert, delete on public.categories to authenticated;
 grant update (name, applies_to, color) on public.categories to authenticated;
 
-grant select, insert, delete on public.items to authenticated;
+grant select, delete on public.items to authenticated;
+-- Insert por columna: stock, costos y autor sólo los escriben los triggers y los defaults.
+grant insert (organization_id, type, sku, name, description, category_id, unit_id, image_path, status, min_stock,
+  sale_price, manual_cost, standard_labor_minutes, overhead_per_unit, preferred_supplier_id)
+  on public.items to authenticated;
 grant update (sku, name, description, category_id, unit_id, image_path, status, min_stock, sale_price,
   manual_cost, standard_labor_minutes, overhead_per_unit, preferred_supplier_id, archived_at)
   on public.items to authenticated;

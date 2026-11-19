@@ -92,9 +92,16 @@ begin
 
   v_new_avg := a;
   if v_recalc then
-    v := greatest(s, 0) * a + q * c;
-    if s + q > 0 and v > 0 then
-      v_new_avg := round(v / (s + q), 4);
+    if s <= 0 then
+      -- Sin stock previo (o negativo): lo que entra define el costo; una salida no lo cambia.
+      if q > 0 then
+        v_new_avg := c;
+      end if;
+    else
+      v := s * a + q * c;
+      if s + q > 0 and v > 0 then
+        v_new_avg := round(v / (s + q), 4);
+      end if;
     end if;
   end if;
 

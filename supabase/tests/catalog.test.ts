@@ -88,6 +88,24 @@ test("current_stock y avg_cost no se pueden editar", async () => {
   ).rejects.toThrow(/permission denied/);
 });
 
+test("al crear un ítem no se puede inventar stock, costo ni autor", async () => {
+  for (const [col, value] of [
+    ["current_stock", 500],
+    ["avg_cost", 99],
+    ["last_purchase_cost", 99],
+    ["created_by", userB],
+  ] as const) {
+    await expect(
+      db.as(userA, (q) =>
+        q.exec(
+          `insert into public.items (organization_id, type, sku, name, unit_id, ${col}) values ($1, 'raw_material', $2, 'Trucho', $3, $4)`,
+          [orgA, `TRUCHO-${col}`, kg, value],
+        ),
+      ),
+    ).rejects.toThrow(/permission denied/);
+  }
+});
+
 test("el SKU es único por fábrica sin distinguir mayúsculas", async () => {
   await db.as(userA, (q) =>
     insertItem(q, { org: orgA, type: "raw_material", sku: "MB-AZ", name: "Masterbatch" }),

@@ -43,3 +43,45 @@ test("admin_list_member_accounts devuelve email y último ingreso de los miembro
     db.as(ana, (q) => q.many("select * from public.admin_list_member_accounts($1)", [org])),
   ).rejects.toThrow(/permission denied/);
 });
+
+describe("admin_can_share_login_link", () => {
+  const can = (o: string, u: string) =>
+    db
+      .as("service", (q) =>
+        q.one<{ ok: boolean }>("select public.admin_can_share_login_link($1, $2) as ok", [o, u]),
+      )
+      .then((r) => r.ok);
+
+  test("sólo para alguien invitado por esta fábrica, sin otras membresías y que nunca ingresó", async () => {
+    const carla = await db.createUser("carla@a.com");
+    await db.su.exec(
+      "insert into public.memberships (organization_id, user_id, invited_by) values ($1, $2, $3)",
+      [org, carla, ana],
+    );
+    expect(await can(org, carla)).toBe(true);
+  });
+
+  test("nunca para el dueño creado por el proveedor (sin invitación) ni para quien ya ingresó", async () => {
+    const owner = await db.createUser("dueno@c.com");
+    const orgC = await db.createOrg("Fábrica C", owner);
+    expect(await can(orgC, owner)).toBe(false);
+    expect(await can(org, ana)).toBe(false);
+  });
+
+  test("nunca para alguien que también pertenece a otra fábrica (toma de cuenta ajena)", async () => {
+    const victim = await db.createUser("victima@d.com");
+    const orgD = await db.createOrg("Fábrica D", victim);
+    await db.su.exec(
+      "insert into public.memberships (organization_id, user_id, invited_by) values ($1, $2, $3)",
+      [org, victim, ana],
+    );
+    expect(await can(org, victim)).toBe(false);
+    expect(await can(orgD, victim)).toBe(false);
+  });
+
+  test("es sólo para el servidor", async () => {
+    await expect(
+      db.as(ana, (q) => q.one("select public.admin_can_share_login_link($1, $2)", [org, ana])),
+    ).rejects.toThrow(/permission denied/);
+  });
+});

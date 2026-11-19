@@ -104,15 +104,13 @@ async function checks() {
   const members = await ca.from("memberships").select("user_id").eq("organization_id", b.orgId!);
   record("A no ve usuarios de B", !members.error && members.data?.length === 0);
 
-  const insert = await ca
-    .from("items")
-    .insert({
-      organization_id: b.orgId,
-      type: "raw_material",
-      sku: `INTRUSO-${stamp}`,
-      name: "Intruso",
-      unit_id: 1,
-    });
+  const insert = await ca.from("items").insert({
+    organization_id: b.orgId,
+    type: "raw_material",
+    sku: `INTRUSO-${stamp}`,
+    name: "Intruso",
+    unit_id: 1,
+  });
   record("A no puede crear ítems en B", Boolean(insert.error), insert.error?.code);
 
   const update = await ca

@@ -118,6 +118,7 @@ export type Database = {
       };
       reset_demo_organization: { Args: { p_org: string }; Returns: undefined };
       admin_find_user_by_email: { Args: { p_email: string }; Returns: string | null };
+      admin_can_share_login_link: { Args: { p_org: string; p_user: string }; Returns: boolean };
       admin_list_member_accounts: {
         Args: { p_org: string };
         Returns: { user_id: string; email: string; last_sign_in_at: string | null }[];

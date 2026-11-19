@@ -20,3 +20,19 @@ revoke execute on function public.admin_find_user_by_email(text), public.admin_l
   from public, anon, authenticated;
 grant execute on function public.admin_find_user_by_email(text), public.admin_list_member_accounts(uuid)
   to service_role;
+
+-- ¿Puede esta fábrica entregar un enlace de ingreso para este usuario? Sólo si lo invitó esta fábrica,
+-- no pertenece a ninguna otra y nunca ingresó. Así un admin no puede tomar la cuenta de alguien
+-- de otra fábrica (por ejemplo, un dueño que todavía no activó su invitación).
+create function public.admin_can_share_login_link(p_org uuid, p_user uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select
+    exists (select 1 from auth.users u where u.id = p_user and u.last_sign_in_at is null)
+    and exists (select 1 from public.memberships m
+                where m.organization_id = p_org and m.user_id = p_user and m.invited_by is not null)
+    and not exists (select 1 from public.memberships m
+                    where m.user_id = p_user and m.organization_id <> p_org)
+$$;
+
+revoke execute on function public.admin_can_share_login_link(uuid, uuid) from public, anon, authenticated;
+grant execute on function public.admin_can_share_login_link(uuid, uuid) to service_role;

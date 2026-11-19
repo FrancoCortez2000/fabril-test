@@ -9,12 +9,15 @@ export function buildAuthConfig(siteUrlRaw: string) {
     site_url: siteUrl,
     uri_allow_list: `${siteUrl}/auth/confirm**`,
     password_min_length: 8,
+    // Los enlaces de invitación y recuperación duran 24 h (lo que promete la interfaz).
+    mailer_otp_exp: 86400,
     mailer_subjects_recovery: "Elegí una nueva contraseña para FABRIL",
     mailer_templates_recovery_content: emailTemplate(
       "Elegí una nueva contraseña",
       "Recibimos un pedido para cambiar la contraseña de tu cuenta de FABRIL.",
       "Elegir contraseña",
       "Si no lo pediste, ignorá este email: tu contraseña sigue siendo la misma.",
+      "recovery",
     ),
     mailer_subjects_magic_link: "Tu enlace para ingresar a FABRIL",
     mailer_templates_magic_link_content: emailTemplate(
@@ -22,16 +25,28 @@ export function buildAuthConfig(siteUrlRaw: string) {
       "Usá este enlace para entrar a FABRIL y elegir tu contraseña.",
       "Ingresar a FABRIL",
       "El enlace sirve una sola vez. Si no lo esperabas, ignorá este email.",
+      "email",
     ),
   };
 }
 
-function emailTemplate(title: string, intro: string, cta: string, note: string): string {
+/**
+ * Los enlaces usan token_hash (no el código PKCE de {{ .ConfirmationURL }}): así funcionan aunque
+ * el email se abra en otro dispositivo o navegador que el que pidió el cambio.
+ */
+function emailTemplate(
+  title: string,
+  intro: string,
+  cta: string,
+  note: string,
+  type: "recovery" | "email",
+): string {
+  const link = `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=${type}&next=/restablecer`;
   return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;color:#1c2127">
   <p style="font-size:18px;font-weight:bold;letter-spacing:.04em">FABRIL</p>
   <h1 style="font-size:22px;margin:24px 0 8px">${title}</h1>
   <p style="font-size:15px;line-height:1.5">${intro}</p>
-  <p style="margin:24px 0"><a href="{{ .ConfirmationURL }}" style="background:#f2a900;color:#1c2127;padding:12px 18px;border-radius:6px;text-decoration:none;font-weight:bold">${cta}</a></p>
+  <p style="margin:24px 0"><a href="${link}" style="background:#f2a900;color:#1c2127;padding:12px 18px;border-radius:6px;text-decoration:none;font-weight:bold">${cta}</a></p>
   <p style="font-size:13px;color:#5b6670;line-height:1.5">${note}</p>
 </div>`;
 }
