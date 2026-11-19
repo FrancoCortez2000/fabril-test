@@ -117,7 +117,7 @@ create trigger purchase_order_lines_updated_at before update on public.purchase_
 create function private.assign_purchase_code() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
-  new.code := private.next_document_code(new.organization_id, 'OC', now());
+  new.code := private.next_document_code(new.organization_id, 'OC', coalesce(new.created_at, now()));
   return new;
 end
 $$;

@@ -153,6 +153,10 @@ $$;
 create function private.log_item_activity() returns trigger
 language plpgsql security definer set search_path = '' as $$
 begin
+  -- El generador de datos demo registra su propia historia.
+  if coalesce(current_setting('fabril.seeding', true), '') = 'on' then
+    return new;
+  end if;
   if tg_op = 'INSERT' then
     perform private.log_activity(new.organization_id, coalesce(auth.uid(), new.created_by), 'item', new.id,
       'created', 'Creó ' || private.item_type_label(new.type) || ' ' || new.name);
