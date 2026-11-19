@@ -26,7 +26,7 @@ language sql stable set search_path = '' as $$
 $$;
 
 create function private.reject_changes() returns trigger
-language plpgsql set search_path = '' as $$
+language plpgsql security definer set search_path = '' as $$
 begin
   if private.purging() then
     return coalesce(new, old);
