@@ -113,6 +113,11 @@ export type Database = {
         Returns: undefined;
       };
       reset_demo_organization: { Args: { p_org: string }; Returns: undefined };
+      admin_find_user_by_email: { Args: { p_email: string }; Returns: string | null };
+      admin_list_member_accounts: {
+        Args: { p_org: string };
+        Returns: { user_id: string; email: string; last_sign_in_at: string | null }[];
+      };
     };
     Enums: {
       app_role: AppRoleEnum;

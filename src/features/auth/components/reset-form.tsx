@@ -9,7 +9,7 @@ import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { updatePassword } from "@/features/auth/actions";
-import { FormAlert } from "@/features/auth/components/form-alert";
+import { FormAlert } from "@/components/feedback/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { resetPasswordSchema, type ResetPasswordValues } from "@/features/auth/schemas";
 

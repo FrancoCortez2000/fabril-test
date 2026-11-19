@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/features/auth/actions";
-import { FormAlert } from "@/features/auth/components/form-alert";
+import { FormAlert } from "@/components/feedback/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 

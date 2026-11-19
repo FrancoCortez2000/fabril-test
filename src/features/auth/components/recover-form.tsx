@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { requestPasswordReset } from "@/features/auth/actions";
-import { FormAlert } from "@/features/auth/components/form-alert";
+import { FormAlert } from "@/components/feedback/form-alert";
 import { recoverSchema, type RecoverValues } from "@/features/auth/schemas";
 
 export function RecoverForm() {
