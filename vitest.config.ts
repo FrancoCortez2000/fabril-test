@@ -13,7 +13,10 @@ export default defineConfig({
     environment: "node",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "supabase/tests/**/*.test.ts", "scripts/**/*.test.ts"],
+    // Las pruebas SQL levantan un Postgres en WASM (PGlite) y aplican las migraciones.
+    testTimeout: 60_000,
+    hookTimeout: 180_000,
     pool: "threads",
     maxWorkers: 2,
     env: { TZ: "UTC" },
