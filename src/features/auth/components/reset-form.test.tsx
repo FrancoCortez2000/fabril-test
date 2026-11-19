@@ -18,7 +18,10 @@ test("valida la contraseña antes de enviar", async () => {
 });
 
 test("con datos válidos llama a updatePassword y muestra el error si falla", async () => {
-  vi.mocked(updatePassword).mockResolvedValue({ ok: false, error: "El enlace venció o ya se usó. Pedí uno nuevo." });
+  vi.mocked(updatePassword).mockResolvedValue({
+    ok: false,
+    error: "El enlace venció o ya se usó. Pedí uno nuevo.",
+  });
   render(<ResetForm />);
   await userEvent.type(screen.getByLabelText("Nueva contraseña"), "fabrica2026");
   await userEvent.type(screen.getByLabelText("Repetí la contraseña"), "fabrica2026");

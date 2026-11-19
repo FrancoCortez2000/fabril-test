@@ -34,27 +34,36 @@ function createOrder(qty: number, end: string | null = null) {
     [product, qty, end, employee, [employee]],
   );
 }
-const start = (id: string, who = admin) => rpc("select * from public.start_production_order($1)", [id], who);
+const start = (id: string, who = admin) =>
+  rpc("select * from public.start_production_order($1)", [id], who);
 const toQc = (id: string) => rpc("select * from public.send_to_quality_check($1)", [id]);
 const stock = (id: string) =>
   db.su
-    .one<{ s: string; a: string }>("select current_stock::text as s, avg_cost::text as a from public.items where id = $1", [id])
+    .one<{ s: string; a: string }>(
+      "select current_stock::text as s, avg_cost::text as a from public.items where id = $1",
+      [id],
+    )
     .then((r) => ({ stock: Number(r.s), avg: Number(r.a) }));
 const materials = (order: string) =>
   db.su
-    .many<{ item_id: string; planned_qty: string; consumed_qty: string; returned_qty: string; scrap_qty: string; cost_consumed: string }>(
+    .many<{
+      item_id: string;
+      planned_qty: string;
+      consumed_qty: string;
+      returned_qty: string;
+      scrap_qty: string;
+      cost_consumed: string;
+    }>(
       "select item_id, planned_qty::text, consumed_qty::text, returned_qty::text, scrap_qty::text, cost_consumed::text from public.production_order_materials where production_order_id = $1",
       [order],
     )
     .then((rows) => Object.fromEntries(rows.map((r) => [r.item_id, r])));
 
 async function inbound(item: string, qty: number, cost: number) {
-  await db.su.exec("select private.insert_movement($1, $2, 'purchase_receipt', $3, $4, null, '{}'::jsonb, null, now())", [
-    org,
-    item,
-    qty,
-    cost,
-  ]);
+  await db.su.exec(
+    "select private.insert_movement($1, $2, 'purchase_receipt', $3, $4, null, '{}'::jsonb, null, now())",
+    [org, item, qty, cost],
+  );
 }
 
 beforeAll(async () => {
@@ -63,7 +72,10 @@ beforeAll(async () => {
   outsider = await db.createUser("beto@b.com");
   org = await db.createOrg("Fábrica A", admin);
   await db.createOrg("Fábrica B", outsider);
-  await db.su.exec("update public.organizations set default_labor_rate = 6000, default_waste_pct = 3 where id = $1", [org]);
+  await db.su.exec(
+    "update public.organizations set default_labor_rate = 6000, default_waste_pct = 3 where id = $1",
+    [org],
+  );
   const ins = (sql: string, p: unknown[]) => db.su.one<{ id: string }>(sql, p).then((r) => r.id);
   pead = await ins(
     "insert into public.items (organization_id, type, sku, name, unit_id) values ($1, 'raw_material', 'PEAD', 'PEAD', 1) returning id",
@@ -78,7 +90,10 @@ beforeAll(async () => {
      values ($1, 'finished_good', 'BID-5L', 'Bidón 5 L', 3, 15, 20) returning id`,
     [org],
   );
-  const bom = await ins("insert into public.boms (organization_id, item_id) values ($1, $2) returning id", [org, product]);
+  const bom = await ins(
+    "insert into public.boms (organization_id, item_id) values ($1, $2) returning id",
+    [org, product],
+  );
   await db.su.exec(
     "insert into public.bom_lines (organization_id, bom_id, component_item_id, quantity) values ($1, $2, $3, 0.25), ($1, $2, $4, 0.005)",
     [org, bom, pead, mb],
@@ -87,7 +102,10 @@ beforeAll(async () => {
     "insert into public.employees (organization_id, first_name, last_name, hourly_cost) values ($1, 'Juan', 'Sosa', 6000) returning id",
     [org],
   );
-  supplier = await ins("insert into public.suppliers (organization_id, name) values ($1, 'Proveedor') returning id", [org]);
+  supplier = await ins(
+    "insert into public.suppliers (organization_id, name) values ($1, 'Proveedor') returning id",
+    [org],
+  );
   await inbound(pead, 300, 1000);
   await inbound(mb, 10, 8000);
 });
@@ -99,7 +117,10 @@ test("no se puede planificar un producto sin receta", async () => {
     [org],
   );
   await expect(
-    rpc("select * from public.create_production_order($1, 10, null, null, 'normal', null, null, null)", [noBom.id]),
+    rpc(
+      "select * from public.create_production_order($1, 10, null, null, 'normal', null, null, null)",
+      [noBom.id],
+    ),
   ).rejects.toThrow("El producto no tiene receta: cargala antes de planificar");
 });
 
@@ -125,24 +146,31 @@ describe("ciclo completo de una orden", () => {
       ),
     );
     expect(st).toEqual({ committed: "257.500", available: "42.500" });
-    const assigned = await db.su.many("select * from public.production_order_assignments where production_order_id = $1", [
-      order.id,
-    ]);
+    const assigned = await db.su.many(
+      "select * from public.production_order_assignments where production_order_id = $1",
+      [order.id],
+    );
     expect(assigned).toHaveLength(1);
   });
 
   test("iniciar con faltante lista sólo lo que falta y no consume nada", async () => {
-    await db.as(admin, (q) => q.exec("select public.create_stock_adjustment($1, 5, 'Conteo')", [mb]));
+    await db.as(admin, (q) =>
+      q.exec("select public.create_stock_adjustment($1, 5, 'Conteo')", [mb]),
+    );
     await expect(start(order.id)).rejects.toThrow(
       "No hay stock suficiente para iniciar: Masterbatch azul faltan 0,15 kg",
     );
     expect((await stock(pead)).stock).toBe(300);
-    await db.as(admin, (q) => q.exec("select public.create_manual_movement($1, 'manual_in', 5, 'Reposición', 8000)", [mb]));
+    await db.as(admin, (q) =>
+      q.exec("select public.create_manual_movement($1, 'manual_in', 5, 'Reposición', 8000)", [mb]),
+    );
   });
 
   test("parte de avance en una orden planificada se rechaza", async () => {
     await expect(
-      rpc("select * from public.report_production_progress($1, 10, 0, null, null, null)", [order.id]),
+      rpc("select * from public.report_production_progress($1, 10, 0, null, null, null)", [
+        order.id,
+      ]),
     ).rejects.toThrow(/no está en producción/);
   });
 
@@ -155,8 +183,14 @@ describe("ciclo completo de una orden", () => {
   });
 
   test("los partes de avance suman cantidades", async () => {
-    await rpc("select * from public.report_production_progress($1, 600, 10, $2, null, 'Turno mañana')", [order.id, employee]);
-    const o = await rpc("select * from public.report_production_progress($1, 400, 10, $2, null, null)", [order.id, employee]);
+    await rpc(
+      "select * from public.report_production_progress($1, 600, 10, $2, null, 'Turno mañana')",
+      [order.id, employee],
+    );
+    const o = await rpc(
+      "select * from public.report_production_progress($1, 400, 10, $2, null, null)",
+      [order.id, employee],
+    );
     expect(o).toMatchObject({ good_qty: "1000.000", defective_qty: "20.000" });
   });
 
@@ -202,7 +236,9 @@ describe("ciclo completo de una orden", () => {
     expect(events.map((e) => e.to_status)).toEqual(
       expect.arrayContaining(["planned", "in_progress", "quality_check", "completed"]),
     );
-    expect(events.some((e) => e.note?.includes("Calidad reclasificó 20 unidades como defectuosas"))).toBe(true);
+    expect(
+      events.some((e) => e.note?.includes("Calidad reclasificó 20 unidades como defectuosas")),
+    ).toBe(true);
   });
 });
 
@@ -210,12 +246,16 @@ test("completar con cero unidades buenas no ingresa stock", async () => {
   const o = await createOrder(10);
   await start(o.id);
   await toQc(o.id);
-  const done = await rpc("select * from public.complete_production_order($1, 0, 10, '[]'::jsonb, '[]'::jsonb, null)", [o.id]);
+  const done = await rpc(
+    "select * from public.complete_production_order($1, 0, 10, '[]'::jsonb, '[]'::jsonb, null)",
+    [o.id],
+  );
   expect(done.status).toBe("completed");
   expect(done.actual_unit_cost).toBeNull();
-  const out = await db.su.many("select 1 from public.stock_movements where production_order_id = $1 and movement_type = 'production_output'", [
-    o.id,
-  ]);
+  const out = await db.su.many(
+    "select 1 from public.stock_movements where production_order_id = $1 and movement_type = 'production_output'",
+    [o.id],
+  );
   expect(out).toHaveLength(0);
 });
 
@@ -224,10 +264,10 @@ test("cancelar en producción devuelve lo indicado y deja el resto como desperdi
   const o = await createOrder(400); // PEAD 103 kg, MB 2,06 kg
   await start(o.id);
   const before = await stock(pead);
-  const cancelled = await rpc("select * from public.cancel_production_order($1, 'Se rompió el molde', $2)", [
-    o.id,
-    JSON.stringify([{ item_id: pead, quantity: 100 }]),
-  ]);
+  const cancelled = await rpc(
+    "select * from public.cancel_production_order($1, 'Se rompió el molde', $2)",
+    [o.id, JSON.stringify([{ item_id: pead, quantity: 100 }])],
+  );
   expect(cancelled.status).toBe("cancelled");
   expect((await stock(pead)).stock).toBeCloseTo(before.stock + 100, 3);
   const m = await materials(o.id);
@@ -240,13 +280,16 @@ test("cancelar en producción devuelve lo indicado y deja el resto como desperdi
 
 test("create_purchase_from_shortages arma un borrador con lo que falta", async () => {
   const big = await createOrder(2000); // PEAD 515 kg
-  const st = await db.su.one<{ available: string }>("select available::text from public.item_stock_status where item_id = $1", [pead]);
+  const st = await db.su.one<{ available: string }>(
+    "select available::text from public.item_stock_status where item_id = $1",
+    [pead],
+  );
   const expected = -Number(st.available);
   expect(expected).toBeGreaterThan(0);
-  const po = await rpc<{ id: string; status: string }>("select * from public.create_purchase_from_shortages($1, $2)", [
-    big.id,
-    supplier,
-  ]);
+  const po = await rpc<{ id: string; status: string }>(
+    "select * from public.create_purchase_from_shortages($1, $2)",
+    [big.id, supplier],
+  );
   expect(po.status).toBe("draft");
   const line = await db.su.one<{ quantity: string; unit_price: string }>(
     "select quantity::text, unit_price::text from public.purchase_order_lines where purchase_order_id = $1 and item_id = $2",
@@ -255,7 +298,9 @@ test("create_purchase_from_shortages arma un borrador con lo que falta", async (
   expect(Number(line.quantity)).toBeCloseTo(expected, 3);
   expect(line.unit_price).toBe("1000.0000");
   // se cancela para que no siga comprometiendo material en los tests siguientes
-  await rpc("select * from public.cancel_production_order($1, 'Prueba terminada', '[]'::jsonb)", [big.id]);
+  await rpc("select * from public.cancel_production_order($1, 'Prueba terminada', '[]'::jsonb)", [
+    big.id,
+  ]);
 });
 
 test("una orden sin faltantes no genera compra", async () => {
@@ -270,25 +315,31 @@ test("un usuario de otra fábrica no puede operar órdenes ajenas", async () => 
   await expect(start(o.id, outsider)).rejects.toMatchObject({ code: "42501" });
   const seen = await db.as(outsider, (q) => q.many("select * from public.production_orders"));
   expect(seen).toHaveLength(0);
-  const view = await db.as(outsider, (q) => q.many("select * from public.production_order_overview"));
+  const view = await db.as(outsider, (q) =>
+    q.many("select * from public.production_order_overview"),
+  );
   expect(view).toHaveLength(0);
 });
 
 test("status y cantidades no se editan a mano", async () => {
   const o = await createOrder(1);
   await expect(
-    db.as(admin, (q) => q.exec("update public.production_orders set status = 'completed' where id = $1", [o.id])),
+    db.as(admin, (q) =>
+      q.exec("update public.production_orders set status = 'completed' where id = $1", [o.id]),
+    ),
   ).rejects.toThrow(/permission denied/);
   await expect(
     db.as(admin, (q) =>
-      q.exec("insert into public.production_orders (organization_id, item_id, planned_qty, code) values ($1, $2, 1, 'X')", [
-        org,
-        product,
-      ]),
+      q.exec(
+        "insert into public.production_orders (organization_id, item_id, planned_qty, code) values ($1, $2, 1, 'X')",
+        [org, product],
+      ),
     ),
   ).rejects.toThrow(/permission denied/);
   const edited = await db.as(admin, (q) =>
-    q.many("update public.production_orders set priority = 'urgent' where id = $1 returning id", [o.id]),
+    q.many("update public.production_orders set priority = 'urgent' where id = $1 returning id", [
+      o.id,
+    ]),
   );
   expect(edited).toHaveLength(1);
 });
@@ -301,16 +352,20 @@ test("production_order_overview marca demoradas y calcula el avance", async () =
     ),
   );
   const byId = Object.fromEntries(rows.map((r) => [r.id, r]));
-  expect(byId[late.id]).toMatchObject({ is_delayed: true, progress_pct: 0, item_name: "Bidón 5 L" });
+  expect(byId[late.id]).toMatchObject({
+    is_delayed: true,
+    progress_pct: 0,
+    item_name: "Bidón 5 L",
+  });
   // la primera orden completó 980 de 1.000
   const completed = rows.find((r) => r.progress_pct === 98);
   expect(completed?.is_delayed).toBe(false);
 });
 
 test("los eventos de producción son inmutables", async () => {
-  await expect(db.as("service", (q) => q.exec("delete from public.production_order_events"))).rejects.toThrow(
-    /no se modifica/,
-  );
+  await expect(
+    db.as("service", (q) => q.exec("delete from public.production_order_events")),
+  ).rejects.toThrow(/no se modifica/);
 });
 
 test("invariante: stock = Σ movimientos", async () => {

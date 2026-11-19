@@ -30,5 +30,7 @@ test("una URL inválida se rechaza", () => {
 });
 
 test("la URL del sitio se normaliza sin barra final", () => {
-  expect(parsePublicEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://fabril.app/" }).siteUrl).toBe("https://fabril.app");
+  expect(parsePublicEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://fabril.app/" }).siteUrl).toBe(
+    "https://fabril.app",
+  );
 });

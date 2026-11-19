@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 export const inviteMemberSchema = z.object({
-  fullName: z.string().trim().min(2, "Ingresá el nombre y apellido").max(80, "Máximo 80 caracteres"),
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Ingresá el nombre y apellido")
+    .max(80, "Máximo 80 caracteres"),
   email: z.string().trim().toLowerCase().pipe(z.email("Ingresá un email válido")),
 });
 export type InviteMemberValues = z.infer<typeof inviteMemberSchema>;

@@ -22,27 +22,48 @@ afterAll(() => db.close());
 
 describe("storage", () => {
   test("los buckets existen, son privados y limitan tamaño y tipo", async () => {
-    const buckets = await db.su.many<{ id: string; public: boolean; file_size_limit: string; allowed_mime_types: string[] }>(
+    const buckets = await db.su.many<{
+      id: string;
+      public: boolean;
+      file_size_limit: string;
+      allowed_mime_types: string[];
+    }>(
       "select id, public, file_size_limit::text, allowed_mime_types from storage.buckets order by id",
     );
     expect(buckets).toEqual([
-      { id: "employee-photos", public: false, file_size_limit: "2097152", allowed_mime_types: ["image/webp", "image/png", "image/jpeg"] },
-      { id: "item-images", public: false, file_size_limit: "2097152", allowed_mime_types: ["image/webp", "image/png", "image/jpeg"] },
+      {
+        id: "employee-photos",
+        public: false,
+        file_size_limit: "2097152",
+        allowed_mime_types: ["image/webp", "image/png", "image/jpeg"],
+      },
+      {
+        id: "item-images",
+        public: false,
+        file_size_limit: "2097152",
+        allowed_mime_types: ["image/webp", "image/png", "image/jpeg"],
+      },
     ]);
   });
 
   test("un miembro ve sólo los archivos de su fábrica y una ruta inválida no rompe", async () => {
-    const rows = await db.as(userA, (q) => q.many<{ name: string }>("select name from storage.objects"));
+    const rows = await db.as(userA, (q) =>
+      q.many<{ name: string }>("select name from storage.objects"),
+    );
     expect(rows.map((r) => r.name)).toEqual([`${orgA}/a.webp`]);
   });
 
   test("un admin sube a su carpeta y no a la de otra fábrica", async () => {
     await db.as(userA, (q) =>
-      q.exec("insert into storage.objects (bucket_id, name) values ('employee-photos', $1)", [`${orgA}/foto.webp`]),
+      q.exec("insert into storage.objects (bucket_id, name) values ('employee-photos', $1)", [
+        `${orgA}/foto.webp`,
+      ]),
     );
     await expect(
       db.as(userA, (q) =>
-        q.exec("insert into storage.objects (bucket_id, name) values ('employee-photos', $1)", [`${orgB}/foto.webp`]),
+        q.exec("insert into storage.objects (bucket_id, name) values ('employee-photos', $1)", [
+          `${orgB}/foto.webp`,
+        ]),
       ),
     ).rejects.toThrow(/row-level security/);
   });
@@ -65,11 +86,15 @@ describe("solicitudes de demostración", () => {
   test("anon no puede insertar ni ejecutar la función", async () => {
     await expect(
       db.as("anon", (q) =>
-        q.exec("insert into public.demo_requests (name, company, email) values ('a', 'b', 'c@d.com')"),
+        q.exec(
+          "insert into public.demo_requests (name, company, email) values ('a', 'b', 'c@d.com')",
+        ),
       ),
     ).rejects.toThrow(/permission denied/);
     await expect(
-      db.as("anon", (q) => q.exec("select public.submit_demo_request('a','b','c@d.com','','','','x')")),
+      db.as("anon", (q) =>
+        q.exec("select public.submit_demo_request('a','b','c@d.com','','','','x')"),
+      ),
     ).rejects.toThrow(/permission denied/);
     await expect(db.as(userA, (q) => q.many("select * from public.demo_requests"))).rejects.toThrow(
       /permission denied/,
@@ -84,7 +109,9 @@ describe("solicitudes de demostración", () => {
       "Recibimos varias solicitudes desde tu conexión. Probá de nuevo en un rato.",
     );
     await submit("hash-2");
-    const count = await db.su.one<{ n: number }>("select count(*)::int as n from public.demo_requests");
+    const count = await db.su.one<{ n: number }>(
+      "select count(*)::int as n from public.demo_requests",
+    );
     expect(count.n).toBe(4);
   });
 });

@@ -1,9 +1,9 @@
 import { ActionError, mapDbError } from "@/lib/db-errors";
 
 test("P0001 pasa el mensaje de negocio tal cual", () => {
-  expect(mapDbError({ code: "P0001", message: "No hay stock suficiente de PEAD: faltan 12,5 kg" })).toBe(
-    "No hay stock suficiente de PEAD: faltan 12,5 kg",
-  );
+  expect(
+    mapDbError({ code: "P0001", message: "No hay stock suficiente de PEAD: faltan 12,5 kg" }),
+  ).toBe("No hay stock suficiente de PEAD: faltan 12,5 kg");
 });
 
 test.each([

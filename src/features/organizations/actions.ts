@@ -21,7 +21,10 @@ export const switchOrganization = createAction({
       path: "/",
       maxAge: 60 * 60 * 24 * 365,
     });
-    await supabase.from("profiles").update({ last_organization_id: organizationId }).eq("id", session.user.id);
+    await supabase
+      .from("profiles")
+      .update({ last_organization_id: organizationId })
+      .eq("id", session.user.id);
     revalidatePath("/app", "layout");
     return null;
   },

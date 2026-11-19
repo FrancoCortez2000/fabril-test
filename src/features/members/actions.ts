@@ -38,7 +38,9 @@ export const inviteMember = createAction({
     if (org.is_demo) throw new ActionError("Las organizaciones demo no admiten invitaciones");
 
     const admin = createAdminClient();
-    const { data: existingId, error: findError } = await admin.rpc("admin_find_user_by_email", { p_email: email });
+    const { data: existingId, error: findError } = await admin.rpc("admin_find_user_by_email", {
+      p_email: email,
+    });
     if (findError) throw findError;
 
     let userId = existingId;
@@ -49,16 +51,23 @@ export const inviteMember = createAction({
         email,
         options: { data: { full_name: fullName } },
       });
-      if (error || !data.user) throw new ActionError("No pudimos crear la invitación. Probá de nuevo.");
+      if (error || !data.user)
+        throw new ActionError("No pudimos crear la invitación. Probá de nuevo.");
       userId = data.user.id;
       inviteUrl = inviteLink(data.properties.hashed_token, "invite");
     }
 
     const { error: insertError } = await admin
       .from("memberships")
-      .insert({ organization_id: orgId, user_id: userId, role: "admin", invited_by: session.user.id });
+      .insert({
+        organization_id: orgId,
+        user_id: userId,
+        role: "admin",
+        invited_by: session.user.id,
+      });
     if (insertError) {
-      if (insertError.code === "23505") throw new ActionError("Ese email ya tiene acceso a esta fábrica");
+      if (insertError.code === "23505")
+        throw new ActionError("Ese email ya tiene acceso a esta fábrica");
       throw insertError;
     }
 
@@ -81,13 +90,21 @@ export const regenerateInvite = createAction({
     if (!membership) throw new ActionError("No encontramos ese usuario en esta fábrica");
 
     const admin = createAdminClient();
-    const { data: accounts, error } = await admin.rpc("admin_list_member_accounts", { p_org: orgId });
+    const { data: accounts, error } = await admin.rpc("admin_list_member_accounts", {
+      p_org: orgId,
+    });
     if (error) throw error;
     const account = accounts?.find((a) => a.user_id === userId);
     if (!account) throw new ActionError("No encontramos ese usuario en esta fábrica");
-    if (account.last_sign_in_at) throw new ActionError("Esta persona ya ingresó: puede recuperar su contraseña desde la pantalla de ingreso");
+    if (account.last_sign_in_at)
+      throw new ActionError(
+        "Esta persona ya ingresó: puede recuperar su contraseña desde la pantalla de ingreso",
+      );
 
-    const { data, error: linkError } = await admin.auth.admin.generateLink({ type: "magiclink", email: account.email });
+    const { data, error: linkError } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email: account.email,
+    });
     if (linkError) throw new ActionError("No pudimos generar el enlace. Probá de nuevo.");
     return { inviteUrl: inviteLink(data.properties.hashed_token, "email") };
   },

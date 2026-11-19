@@ -4,7 +4,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { createClient } from "@/lib/supabase/server";
 
-const OTP_TYPES = new Set<EmailOtpType>(["invite", "recovery", "email", "signup", "magiclink", "email_change"]);
+const OTP_TYPES = new Set<EmailOtpType>([
+  "invite",
+  "recovery",
+  "email",
+  "signup",
+  "magiclink",
+  "email_change",
+]);
 
 /**
  * Destino de los enlaces de email (invitación y recuperación de contraseña).

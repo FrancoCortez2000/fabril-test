@@ -3,8 +3,7 @@ import { z } from "zod";
 import { mapDbError } from "@/lib/db-errors";
 
 export type ActionResult<R> =
-  | { ok: true; data: R }
-  | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
+  { ok: true; data: R } | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
 
 export type ActionDefinition<S extends z.ZodType, R, C> = {
   schema: S;

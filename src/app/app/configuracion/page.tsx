@@ -12,7 +12,8 @@ export const metadata: Metadata = { title: "Configuración" };
 async function Members() {
   const session = await requireSession();
   const members = await listMembers(session);
-  const isDemo = session.organizations.find((o) => o.id === session.activeOrganizationId)?.isDemo ?? false;
+  const isDemo =
+    session.organizations.find((o) => o.id === session.activeOrganizationId)?.isDemo ?? false;
   return <MembersPanel members={members} isDemo={isDemo} />;
 }
 

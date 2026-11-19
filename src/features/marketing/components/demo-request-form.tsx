@@ -48,7 +48,8 @@ export function DemoRequestForm() {
         <FormAlert tone="success">
           <p className="font-medium">Gracias, {sent.name}. Recibimos tu solicitud.</p>
           <p className="mt-1 text-muted-foreground">
-            Te vamos a escribir a {sent.email} para coordinar una demostración con datos de tu rubro.
+            Te vamos a escribir a {sent.email} para coordinar una demostración con datos de tu
+            rubro.
           </p>
         </FormAlert>
       </div>

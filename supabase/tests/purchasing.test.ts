@@ -9,7 +9,14 @@ let supplier: string;
 let pead: string;
 let mb: string;
 
-type Po = { id: string; code: string; status: string; subtotal: string; tax_total: string; total: string };
+type Po = {
+  id: string;
+  code: string;
+  status: string;
+  subtotal: string;
+  tax_total: string;
+  total: string;
+};
 
 async function createPo(lines: { item: string; qty: number; price: number; rate: number }[]) {
   return db.as(admin, async (q) => {
@@ -28,14 +35,17 @@ async function createPo(lines: { item: string; qty: number; price: number; rate:
   });
 }
 
-const getPo = (id: string) => db.su.one<Po>("select * from public.purchase_orders where id = $1", [id]);
+const getPo = (id: string) =>
+  db.su.one<Po>("select * from public.purchase_orders where id = $1", [id]);
 const lineIds = (po: string) =>
   db.su
     .many<{ id: string; item_id: string }>(
       "select id, item_id from public.purchase_order_lines where purchase_order_id = $1",
       [po],
     )
-    .then((rows) => Object.fromEntries(rows.map((r) => [r.item_id, r.id])) as Record<string, string>);
+    .then(
+      (rows) => Object.fromEntries(rows.map((r) => [r.item_id, r.id])) as Record<string, string>,
+    );
 const item = (id: string) =>
   db.su.one<{ current_stock: string; avg_cost: string; last_purchase_cost: string | null }>(
     "select current_stock::text, avg_cost::text, last_purchase_cost::text from public.items where id = $1",
@@ -45,10 +55,10 @@ const confirm = (po: string, who = admin) =>
   db.as(who, (q) => q.one<Po>("select * from public.confirm_purchase_order($1)", [po]));
 const receive = (po: string, lines: { line_id: string; quantity: number }[], who = admin) =>
   db.as(who, (q) =>
-    q.one<{ id: string }>("select * from public.receive_purchase_order($1, '0001-00004567', null, $2)", [
-      po,
-      JSON.stringify(lines),
-    ]),
+    q.one<{ id: string }>(
+      "select * from public.receive_purchase_order($1, '0001-00004567', null, $2)",
+      [po, JSON.stringify(lines)],
+    ),
   );
 
 beforeAll(async () => {
@@ -88,7 +98,12 @@ test("el código se asigna solo y los totales incluyen IVA mixto al centavo", as
   const po = await getPo(id);
   // 3,333 × 1234,56 = 4114,788 → 4114,79 ; 2 × 999,99 = 1999,98
   // IVA: 4114,788 × 21 % = 864,1055 → 864,11 ; 1999,98 × 10,5 % = 209,9979 → 210,00
-  expect(po).toMatchObject({ status: "draft", subtotal: "6114.77", tax_total: "1074.11", total: "7188.88" });
+  expect(po).toMatchObject({
+    status: "draft",
+    subtotal: "6114.77",
+    tax_total: "1074.11",
+    total: "7188.88",
+  });
   expect(po.code).toMatch(/^OC-\d{4}-0001$/);
 });
 
@@ -105,17 +120,19 @@ test("sólo se compran materias primas", async () => {
 test("status, code y totales no se editan a mano", async () => {
   const id = await createPo([{ item: pead, qty: 1, price: 1, rate: 21 }]);
   await expect(
-    db.as(admin, (q) => q.exec("update public.purchase_orders set status = 'received' where id = $1", [id])),
+    db.as(admin, (q) =>
+      q.exec("update public.purchase_orders set status = 'received' where id = $1", [id]),
+    ),
   ).rejects.toThrow(/permission denied/);
   await expect(
     db.as(admin, (q) => q.exec("update public.purchase_orders set total = 1 where id = $1", [id])),
   ).rejects.toThrow(/permission denied/);
   await expect(
     db.as(admin, (q) =>
-      q.exec("insert into public.purchase_orders (organization_id, supplier_id, status) values ($1, $2, 'received')", [
-        org,
-        supplier,
-      ]),
+      q.exec(
+        "insert into public.purchase_orders (organization_id, supplier_id, status) values ($1, $2, 'received')",
+        [org, supplier],
+      ),
     ),
   ).rejects.toThrow(/permission denied/);
 });
@@ -141,7 +158,10 @@ describe("ciclo de recepción", () => {
 
   test("con la orden confirmada ya no se pueden editar sus líneas", async () => {
     const rows = await db.as(admin, (q) =>
-      q.many("update public.purchase_order_lines set quantity = 1 where purchase_order_id = $1 returning id", [po]),
+      q.many(
+        "update public.purchase_order_lines set quantity = 1 where purchase_order_id = $1 returning id",
+        [po],
+      ),
     );
     expect(rows).toHaveLength(0);
   });
@@ -149,7 +169,11 @@ describe("ciclo de recepción", () => {
   test("recepción parcial actualiza stock, promedio, último costo y estado", async () => {
     firstReceipt = (await receive(po, [{ line_id: lines[pead]!, quantity: 60 }])).id;
     expect((await getPo(po)).status).toBe("partially_received");
-    expect(await item(pead)).toEqual({ current_stock: "60.000", avg_cost: "1000.0000", last_purchase_cost: "1000.0000" });
+    expect(await item(pead)).toEqual({
+      current_stock: "60.000",
+      avg_cost: "1000.0000",
+      last_purchase_cost: "1000.0000",
+    });
   });
 
   test("no se puede recibir más de lo pedido", async () => {
@@ -201,7 +225,9 @@ describe("ciclo de recepción", () => {
 
   test("cancelar una orden parcialmente recibida la cierra con faltantes", async () => {
     const closed = await db.as(admin, (q) =>
-      q.one<Po>("select * from public.cancel_purchase_order($1, 'El proveedor no tiene más')", [po]),
+      q.one<Po>("select * from public.cancel_purchase_order($1, 'El proveedor no tiene más')", [
+        po,
+      ]),
     );
     expect(closed.status).toBe("closed");
   });

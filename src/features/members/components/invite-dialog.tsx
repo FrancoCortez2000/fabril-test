@@ -21,7 +21,11 @@ import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { inviteMember } from "@/features/members/actions";
 import { InviteLink } from "@/features/members/components/invite-link";
-import { inviteMemberSchema, type InviteMemberValues, type InviteResult } from "@/features/members/schemas";
+import {
+  inviteMemberSchema,
+  type InviteMemberValues,
+  type InviteResult,
+} from "@/features/members/schemas";
 
 const EMPTY: InviteMemberValues = { fullName: "", email: "" };
 
@@ -74,7 +78,8 @@ export function InviteDialog() {
               <InviteLink url={result.inviteUrl} name={result.name} />
             ) : (
               <FormAlert tone="success">
-                {result.name} ya tenía una cuenta en FABRIL: ya puede entrar a esta fábrica con su contraseña.
+                {result.name} ya tenía una cuenta en FABRIL: ya puede entrar a esta fábrica con su
+                contraseña.
               </FormAlert>
             )}
             <DialogFooter>
@@ -91,13 +96,17 @@ export function InviteDialog() {
                 control={control}
                 name="fullName"
                 label="Nombre y apellido"
-                render={(field, a11y) => <Input {...field} {...a11y} autoComplete="off" autoFocus />}
+                render={(field, a11y) => (
+                  <Input {...field} {...a11y} autoComplete="off" autoFocus />
+                )}
               />
               <FormField
                 control={control}
                 name="email"
                 label="Email"
-                render={(field, a11y) => <Input {...field} {...a11y} type="email" autoComplete="off" />}
+                render={(field, a11y) => (
+                  <Input {...field} {...a11y} type="email" autoComplete="off" />
+                )}
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

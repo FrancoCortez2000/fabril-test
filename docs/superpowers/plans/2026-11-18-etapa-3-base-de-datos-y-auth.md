@@ -4,7 +4,7 @@
 
 **Goal:** Esquema completo de FABRIL en Supabase (tablas, RLS, triggers, funciones de negocio transaccionales, vistas, storage), autenticación real del panel `/app` con organización activa, gestión de usuarios por invitación, datos demo generados por las mismas reglas de negocio, y pruebas SQL automáticas que corren sin Docker.
 
-**Architecture:** Las migraciones SQL versionadas en `supabase/migrations/` son la única fuente del esquema. Se prueban localmente con **PGlite** (Postgres 17 compilado a WASM, corre dentro de Vitest) sobre un *shim* mínimo de Supabase (roles `anon`/`authenticated`/`service_role`, `auth.uid()`, `storage`), y se aplican a la nube con el CLI de Supabase. Toda operación que mueve stock o cambia estados es una función `security definer` con un núcleo privado (`private.*_core`) que recibe actor y fecha, para que los datos demo usen exactamente el mismo camino con fechas históricas. En Next.js, `@supabase/ssr` con cookies, `src/proxy.ts` para refrescar la sesión y una capa de acceso (`lib/auth`) que valida sesión, membresía y rol en cada Server Component y Server Action.
+**Architecture:** Las migraciones SQL versionadas en `supabase/migrations/` son la única fuente del esquema. Se prueban localmente con **PGlite** (Postgres 17 compilado a WASM, corre dentro de Vitest) sobre un _shim_ mínimo de Supabase (roles `anon`/`authenticated`/`service_role`, `auth.uid()`, `storage`), y se aplican a la nube con el CLI de Supabase. Toda operación que mueve stock o cambia estados es una función `security definer` con un núcleo privado (`private.*_core`) que recibe actor y fecha, para que los datos demo usen exactamente el mismo camino con fechas históricas. En Next.js, `@supabase/ssr` con cookies, `src/proxy.ts` para refrescar la sesión y una capa de acceso (`lib/auth`) que valida sesión, membresía y rol en cada Server Component y Server Action.
 
 **Tech Stack:** Supabase (Postgres 17, Auth, Storage), `@supabase/supabase-js` 2.118.0, `@supabase/ssr` 0.12.7, `supabase` CLI 3.1.0 (dev), `@electric-sql/pglite` 0.5.13 (dev), `server-only`, Next.js 16.4 (proxy, Server Actions, `cacheComponents`), Zod 4, Vitest.
 
@@ -36,10 +36,12 @@
 ### Task 1: Herramientas de base de datos y entorno de pruebas SQL
 
 **Files:**
+
 - Create: `supabase/config.toml` (vía `npx supabase init`), `supabase/tests/shim.sql`, `supabase/tests/db.ts`, `supabase/tests/harness.test.ts`
 - Modify: `package.json` (deps + scripts), `vitest.config.ts` (incluir `supabase/tests/**/*.test.ts`, timeout 60 s para esos archivos), `tsconfig.json` (incluir `supabase/tests`, `scripts`; `allowImportingTsExtensions`)
 
 **Interfaces:**
+
 - Produces (`supabase/tests/db.ts`):
   - `createTestDb(): Promise<TestDb>` — PGlite nuevo con `shim.sql` + todas las migraciones de `supabase/migrations/*.sql` en orden de nombre. Cachea el directorio de datos ya migrado (`dumpDataDir`) por proceso para que cada archivo de test arranque de una copia.
   - `TestDb = { pg: PGlite; as<T>(user: string | "anon" | "service", fn: (q: Query) => Promise<T>): Promise<T>; createUser(email: string, fullName?: string): Promise<string>; createOrg(name: string, adminUserId: string, opts?: { isDemo?: boolean }): Promise<string>; close(): Promise<void> }`
@@ -57,9 +59,11 @@
 ### Task 2: Núcleo — organizaciones, perfiles, membresías y permisos
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000100_foundation.sql`, `supabase/tests/foundation.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - Esquema `private` (sin `usage` para `anon`; `authenticated` sólo `execute` en helpers de RLS).
   - `create type public.app_role as enum ('admin')`; `public.membership_status as enum ('active','disabled')`.
@@ -92,9 +96,11 @@
 ### Task 3: Catálogo — unidades, categorías, ítems y recetas
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000200_catalog.sql`, `supabase/tests/catalog.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - `units(id smallint, code, name, allows_decimals)` global, sembrada: `kg` Kilogramo, `g` Gramo, `u` Unidad (sin decimales), `l` Litro, `ml` Mililitro, `m` Metro, `m2` Metro cuadrado. Select para `authenticated`, sin escrituras.
   - `categories(name, applies_to check in ('finished_good','raw_material','both'), color)`, único `(organization_id, lower(name))`.
@@ -114,9 +120,11 @@
 ### Task 4: Inventario — libro de movimientos, valorización y operaciones manuales
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000300_inventory.sql`, `supabase/tests/inventory.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - `stock_movements` (§4.2): `movement_type check in ('purchase_receipt','production_output','production_consumption','production_return','production_scrap','adjustment','manual_in','manual_out','reversal')`, `quantity numeric(14,3) check <> 0` (con signo), `unit_cost numeric(14,4)`, `total_cost numeric(14,2)`, `balance_after numeric(14,3)`, `reason`, `occurred_at default now()`, `production_order_id`, `purchase_receipt_line_id`, `reverses_movement_id` (FKs de producción/compras se agregan en Task 5–6). Índices `(organization_id, item_id, occurred_at)`.
   - `private.apply_stock_movement()` trigger `before insert` — algoritmo (bloquea `items` con `for update`):
@@ -136,7 +144,7 @@
     El formato del faltante usa coma decimal y 3 decimales (`12,500`), igual que `formatQuantity`.
   - Trigger `before update or delete` en `stock_movements` → `P0001` “Los movimientos de stock no se modifican: registrá un ajuste o una anulación” salvo `private.purging()`.
   - Grants: `select` a `authenticated` con RLS de miembro; ningún insert/update/delete.
-  - RPCs (`security definer`, `require_role(org, '{admin}')`, `activity_log`): 
+  - RPCs (`security definer`, `require_role(org, '{admin}')`, `activity_log`):
     - `create_stock_adjustment(p_item uuid, p_counted_qty numeric, p_reason text) returns stock_movements` — delta = contado − actual; delta 0 → “El stock contado coincide con el registrado: no hay nada que ajustar”; motivo obligatorio (≥ 3 caracteres).
     - `create_manual_movement(p_item uuid, p_type text, p_quantity numeric, p_reason text, p_unit_cost numeric default null) returns stock_movements` — `p_type in ('manual_in','manual_out')`, cantidad > 0 (el signo lo pone la función).
     - `reverse_stock_movement(p_movement uuid, p_reason text) returns stock_movements` — sólo `manual_in`, `manual_out`, `adjustment` no anulados antes; inserta `reversal` con `quantity = -original`, `unit_cost = original.unit_cost`, `reverses_movement_id`. Otros tipos → “Este movimiento se corrige desde su compra u orden de producción”.
@@ -163,9 +171,11 @@
 ### Task 5: Proveedores y compras
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000400_purchasing.sql`, `supabase/tests/purchasing.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - `suppliers` (§4.2, `status check in ('active','inactive')`), FK `items.preferred_supplier_id`.
   - `purchase_orders(code unique por org, supplier_id, status check in ('draft','pending','partially_received','received','closed','cancelled') default 'draft', order_date date, expected_date date, notes, subtotal, tax_total, total, cancel_reason)`; `purchase_order_lines(purchase_order_id cascade, item_id (raw_material), quantity > 0, unit_price ≥ 0, tax_rate check in (0, 10.5, 21, 27), received_qty default 0)`; `purchase_receipts(purchase_order_id, received_at date, delivery_note_number, notes)`; `purchase_receipt_lines(receipt_id, purchase_order_line_id, quantity > 0, reversed_qty default 0)`. FK `stock_movements.purchase_receipt_line_id`.
@@ -182,9 +192,11 @@
 ### Task 6: Empleados y producción
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000500_production.sql`, `supabase/tests/production.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - `areas(name)`, `employees` (§4.2; `status check in ('active','on_leave','inactive')`, `hourly_cost numeric(14,2) null`, `user_id null`).
   - `production_orders` (§4.2; `status` default `planned`, `priority check in ('low','normal','high','urgent') default 'normal'`, `planned_qty > 0`, `good_qty`, `defective_qty`, `planned_material_cost`, `planned_labor_cost`, `planned_overhead_cost`, `actual_material_cost`, `actual_labor_cost`, `actual_overhead_cost`, `actual_unit_cost null`); `production_order_materials(item_id, qty_per_unit, waste_pct, planned_qty, consumed_qty default 0, cost_consumed default 0, returned_qty default 0, scrap_qty default 0)`; `production_order_assignments(employee_id, role_in_order check in ('responsable','operario','calidad'), hours_worked numeric(8,2) default 0, unique(order, employee))`; `production_reports(report_date date, good_qty ≥ 0, defective_qty ≥ 0, employee_id, notes)`; `production_order_events(from_status, to_status, note, actor_id, occurred_at)` inmutable. FK `stock_movements.production_order_id`.
@@ -219,9 +231,11 @@
 ### Task 7: Storage y solicitudes de demostración
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000600_storage_and_leads.sql`, `supabase/tests/storage-leads.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - Buckets privados `item-images` y `employee-photos` (`file_size_limit 2097152`, `allowed_mime_types {image/webp,image/png,image/jpeg}`). Políticas en `storage.objects`: select para miembros y insert/update/delete para admin, ambos sobre la organización del primer segmento de la ruta (`private.uuid_or_null((storage.foldername(name))[1])`).
   - `demo_requests(id, name, company, email, phone, industry, message, ip_hash text, created_at)`. Sin grants para `anon` ni `authenticated` **[desvío del spec, más estricto: ver Ruling R1]**.
@@ -234,9 +248,11 @@
 ### Task 8: Datos de demostración
 
 **Files:**
+
 - Create: `supabase/migrations/20261118000700_demo.sql`, `supabase/tests/demo.test.ts`
 
 **Interfaces:**
+
 - Produces (SQL):
   - `private.seed_demo(p_org uuid, p_actor uuid)` — determinística (`setseed(0.42)`), sin `now()` salvo como ancla (`today` = fecha actual en la zona de la fábrica):
     - Catálogo de §8 del spec: 14 materias primas (PEAD, PEBD, PP homopolímero, PP copolímero, PET, masterbatch azul, blanco, rojo, negro, etiquetas, asas metálicas, precintos, cajas de embalaje, film stretch) con costos realistas en ARS; 12 productos terminados con receta, minutos estándar e indirectos; categorías; 5 proveedores; 7 áreas; 16 empleados con costo hora.
@@ -252,9 +268,11 @@
 ### Task 9: Clientes de Supabase, proxy y capa de acceso
 
 **Files:**
+
 - Create: `src/lib/env.ts`, `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`, `src/lib/supabase/admin.ts`, `src/lib/supabase/proxy.ts`, `src/proxy.ts`, `src/lib/auth/types.ts`, `src/lib/auth/session.ts`, `src/lib/auth/permissions.ts`, `src/lib/auth/redirect.ts`, `src/lib/actions.ts`, `src/types/database.ts` (provisorio escrito a mano para las tablas de este Task; se reemplaza por el generado en Task 12), tests `src/lib/env.test.ts`, `src/lib/auth/redirect.test.ts`, `src/lib/auth/session.test.ts`, `src/lib/actions.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `publicEnv: { supabaseUrl: string; supabaseKey: string; siteUrl: string }` (Zod; error claro si falta: “Falta NEXT_PUBLIC_SUPABASE_URL en .env.local”); `serverEnv(): { secretKey: string }` en módulo `server-only`.
   - `createClient(): Promise<SupabaseClient<Database>>` (servidor, cookies `getAll`/`setAll`), `createBrowserClient()`, `createAdminClient()` (`server-only`, `persistSession: false`).
@@ -274,12 +292,14 @@
 ### Task 10: Flujos de autenticación y panel con sesión real
 
 **Files:**
+
 - Create: `src/features/auth/actions.ts`, `src/app/auth/confirm/route.ts`, `src/app/(auth)/sin-acceso/page.tsx`, `src/features/organizations/actions.ts`, `src/components/layout/app-shell.tsx`, `src/components/layout/shell-skeleton.tsx`
 - Modify: `src/features/auth/components/login-form.tsx`, `recover-form.tsx`, `reset-form.tsx`, `src/app/(auth)/restablecer/page.tsx`, `src/app/app/layout.tsx`, `src/components/layout/org-switcher.tsx`, `src/components/layout/user-menu.tsx`, componentes que importan `AppSession` desde `@/fixtures/session`
 - Delete: `src/fixtures/session.ts`
 - Test: `src/features/auth/components/login-form.test.tsx` (ampliar), `recover-form.test.tsx`, `reset-form.test.tsx`, `src/components/layout/org-switcher.test.tsx`
 
 **Interfaces:**
+
 - Consumes: Task 9 (`createAction`, `safeNextPath`, `requireSession`, `createClient`).
 - Produces:
   - `signIn(input: LoginValues & { next?: string })` → `signInWithPassword`; error de credenciales → “El email o la contraseña no son correctos”; éxito → `redirect(safeNextPath(next))`.
@@ -298,11 +318,13 @@
 ### Task 11: Usuarios de la fábrica y formulario de la landing
 
 **Files:**
+
 - Create: `src/features/members/schemas.ts`, `src/features/members/actions.ts`, `src/features/members/queries.ts`, `src/features/members/components/members-panel.tsx`, `src/features/members/components/invite-dialog.tsx`, `src/features/marketing/actions.ts`, `src/lib/request-ip.ts`
 - Modify: `src/app/app/configuracion/page.tsx`, `src/features/marketing/components/demo-request-form.tsx`
 - Test: `src/features/members/schemas.test.ts`, `src/features/members/components/invite-dialog.test.tsx`, `src/features/marketing/components/demo-request-form.test.tsx`, `src/lib/request-ip.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `listMembers(orgId)` (server-only): membresías + perfiles; estado “Pendiente” si el usuario nunca ingresó (`auth.admin.getUserById` → `last_sign_in_at` nulo), “Activo”, “Deshabilitado”.
   - `inviteMember({ email, fullName })` (admin; organización no demo → si es demo: “Las organizaciones demo no admiten invitaciones”): usuario nuevo → `auth.admin.generateLink({ type: "invite", email, data: { full_name } })`; usuario existente → sin enlace; en ambos casos inserta la membresía con el cliente admin **después** de verificar `has_role` con el cliente del usuario. Devuelve `{ inviteUrl: string | null }` con `siteUrl/auth/confirm?token_hash=…&type=invite&next=/restablecer`, que la UI muestra con botón “Copiar enlace” (válido 24 h) **[ver Ruling R2]**.
@@ -318,10 +340,12 @@
 ### Task 12: Nube — migraciones, configuración de Auth, scripts y verificación real
 
 **Files:**
+
 - Create: `scripts/lib/env.ts`, `scripts/db.ts`, `scripts/auth-config.ts`, `scripts/fabrica-crear.ts`, `scripts/demo-crear.ts`, `scripts/verify-cloud.ts`, `scripts/lib/auth-config.test.ts`
 - Modify: `package.json` (scripts), `src/types/database.ts` (generado), `README.md` (sección Supabase), `docs/plan-tecnico.md` (§4/§8/§9 con los desvíos aprobados)
 
 **Interfaces:**
+
 - Produces (npm scripts, todos con `node --env-file=.env.local`):
   - `db:push` → `supabase link --project-ref $SUPABASE_PROJECT_REF` + `supabase db push` (con `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD` del entorno; nunca impresos).
   - `db:types` → `supabase gen types typescript --project-id $SUPABASE_PROJECT_REF --schema public > src/types/database.ts`.
@@ -329,7 +353,7 @@
   - `fabrica:crear -- --nombre "…" --email "…"` → crea o reutiliza el usuario (enlace de invitación si es nuevo), `admin_create_organization`, imprime la fábrica creada y el enlace.
   - `demo:crear -- --email "…"` → el usuario debe existir (si no: mensaje con el comando `fabrica:crear`), `admin_create_demo_organization`, imprime conteos.
   - `db:verify` → `verify-cloud.ts`: crea dos fábricas temporales y dos usuarios con contraseña aleatoria, inicia sesión con la clave publicable, comprueba que cada uno lee sólo lo suyo (organizations, items, stock_movements, memberships), que escribir con el `organization_id` ajeno falla, que una RPC ajena da `42501`, que `anon` no lee nada y que `signUp` público está desactivado; borra todo al terminar (también si falla) e imprime una tabla de resultados.
-  - Al final: *security advisor* (`GET /v1/projects/{ref}/advisors/security`) sin hallazgos de nivel ERROR.
+  - Al final: _security advisor_ (`GET /v1/projects/{ref}/advisors/security`) sin hallazgos de nivel ERROR.
 
 - [ ] **Step 1:** Test `buildAuthConfig("https://fabril.app")` → objeto exacto esperado (incluye `disable_signup: true`).
 - [ ] **Step 2:** Run → FAIL. **Step 3:** Implementar scripts. **Step 4:** Run → PASS.

@@ -28,7 +28,9 @@ beforeAll(async () => {
   other = await db.createUser("otro@plasticos.com");
   realOrg = await db.createOrg("Mi fábrica real", owner);
   const create = (user: string) =>
-    db.as("service", (q) => q.one<{ id: string }>("select public.admin_create_demo_organization($1) as id", [user]));
+    db.as("service", (q) =>
+      q.one<{ id: string }>("select public.admin_create_demo_organization($1) as id", [user]),
+    );
   const t0 = Date.now();
   demo = (await create(owner)).id;
   console.info(`seed demo: ${Date.now() - t0} ms`);
@@ -37,24 +39,57 @@ beforeAll(async () => {
 afterAll(() => db.close());
 
 test("la organización demo queda marcada y con el usuario como admin", async () => {
-  const org = await db.su.one<{ name: string; is_demo: boolean }>("select name, is_demo from public.organizations where id = $1", [demo]);
+  const org = await db.su.one<{ name: string; is_demo: boolean }>(
+    "select name, is_demo from public.organizations where id = $1",
+    [demo],
+  );
   expect(org).toEqual({ name: "Plásticos del Litoral S.A.", is_demo: true });
-  const visible = await db.as(owner, (q) => q.many<{ id: string }>("select id from public.organizations order by is_demo"));
+  const visible = await db.as(owner, (q) =>
+    q.many<{ id: string }>("select id from public.organizations order by is_demo"),
+  );
   expect(visible.map((o) => o.id)).toEqual([realOrg, demo]);
 });
 
 test("el catálogo tiene 12 productos con receta y 14 materias primas", async () => {
-  expect(await count("select count(*)::int as n from public.items where organization_id = $1 and type = 'finished_good'", [demo])).toBe(12);
-  expect(await count("select count(*)::int as n from public.items where organization_id = $1 and type = 'raw_material'", [demo])).toBe(14);
-  expect(await count("select count(*)::int as n from public.boms where organization_id = $1", [demo])).toBe(12);
-  expect(await count("select count(*)::int as n from public.suppliers where organization_id = $1", [demo])).toBe(5);
-  expect(await count("select count(*)::int as n from public.areas where organization_id = $1", [demo])).toBe(7);
-  expect(await count("select count(*)::int as n from public.employees where organization_id = $1", [demo])).toBe(16);
+  expect(
+    await count(
+      "select count(*)::int as n from public.items where organization_id = $1 and type = 'finished_good'",
+      [demo],
+    ),
+  ).toBe(12);
+  expect(
+    await count(
+      "select count(*)::int as n from public.items where organization_id = $1 and type = 'raw_material'",
+      [demo],
+    ),
+  ).toBe(14);
+  expect(
+    await count("select count(*)::int as n from public.boms where organization_id = $1", [demo]),
+  ).toBe(12);
+  expect(
+    await count("select count(*)::int as n from public.suppliers where organization_id = $1", [
+      demo,
+    ]),
+  ).toBe(5);
+  expect(
+    await count("select count(*)::int as n from public.areas where organization_id = $1", [demo]),
+  ).toBe(7);
+  expect(
+    await count("select count(*)::int as n from public.employees where organization_id = $1", [
+      demo,
+    ]),
+  ).toBe(16);
 });
 
 test("hay entre 30 y 40 compras y entre 55 y 65 órdenes de producción", async () => {
-  const purchases = await count("select count(*)::int as n from public.purchase_orders where organization_id = $1", [demo]);
-  const orders = await count("select count(*)::int as n from public.production_orders where organization_id = $1", [demo]);
+  const purchases = await count(
+    "select count(*)::int as n from public.purchase_orders where organization_id = $1",
+    [demo],
+  );
+  const orders = await count(
+    "select count(*)::int as n from public.production_orders where organization_id = $1",
+    [demo],
+  );
   expect(purchases).toBeGreaterThanOrEqual(30);
   expect(purchases).toBeLessThanOrEqual(40);
   expect(orders).toBeGreaterThanOrEqual(55);
@@ -62,21 +97,35 @@ test("hay entre 30 y 40 compras y entre 55 y 65 órdenes de producción", async 
 });
 
 test("aparecen todos los estados de compra y de producción", async () => {
-  const ps = await db.su.many<{ status: string }>("select distinct status from public.purchase_orders where organization_id = $1", [demo]);
+  const ps = await db.su.many<{ status: string }>(
+    "select distinct status from public.purchase_orders where organization_id = $1",
+    [demo],
+  );
   expect(ps.map((s) => s.status).sort()).toEqual(
     ["cancelled", "closed", "draft", "partially_received", "pending", "received"].sort(),
   );
-  const os = await db.su.many<{ status: string }>("select distinct status from public.production_orders where organization_id = $1", [demo]);
-  expect(os.map((s) => s.status).sort()).toEqual(["cancelled", "completed", "in_progress", "planned", "quality_check"].sort());
+  const os = await db.su.many<{ status: string }>(
+    "select distinct status from public.production_orders where organization_id = $1",
+    [demo],
+  );
+  expect(os.map((s) => s.status).sort()).toEqual(
+    ["cancelled", "completed", "in_progress", "planned", "quality_check"].sort(),
+  );
 });
 
 test("hay al menos 3 órdenes demoradas y 3 ítems bajo el mínimo", async () => {
   const delayed = await db.as(owner, (q) =>
-    q.one<{ n: number }>("select count(*)::int as n from public.production_order_overview where organization_id = $1 and is_delayed", [demo]),
+    q.one<{ n: number }>(
+      "select count(*)::int as n from public.production_order_overview where organization_id = $1 and is_delayed",
+      [demo],
+    ),
   );
   expect(delayed.n).toBeGreaterThanOrEqual(3);
   const low = await db.as(owner, (q) =>
-    q.one<{ n: number }>("select count(*)::int as n from public.item_stock_status where organization_id = $1 and level <> 'ok'", [demo]),
+    q.one<{ n: number }>(
+      "select count(*)::int as n from public.item_stock_status where organization_id = $1 and level <> 'ok'",
+      [demo],
+    ),
   );
   expect(low.n).toBeGreaterThanOrEqual(3);
 });
@@ -89,14 +138,30 @@ test("el stock cierra, no hay negativos ni fechas futuras", async () => {
     [demo],
   );
   expect(bad).toEqual([]);
-  expect(await count("select count(*)::int as n from public.items where organization_id = $1 and current_stock < 0", [demo])).toBe(0);
-  expect(await count("select count(*)::int as n from public.stock_movements where organization_id = $1 and occurred_at > now()", [demo])).toBe(0);
+  expect(
+    await count(
+      "select count(*)::int as n from public.items where organization_id = $1 and current_stock < 0",
+      [demo],
+    ),
+  ).toBe(0);
+  expect(
+    await count(
+      "select count(*)::int as n from public.stock_movements where organization_id = $1 and occurred_at > now()",
+      [demo],
+    ),
+  ).toBe(0);
   const types = await db.su.many<{ movement_type: string }>(
     "select distinct movement_type from public.stock_movements where organization_id = $1",
     [demo],
   );
   expect(types.map((t) => t.movement_type)).toEqual(
-    expect.arrayContaining(["purchase_receipt", "production_output", "production_consumption", "manual_out", "adjustment"]),
+    expect.arrayContaining([
+      "purchase_receipt",
+      "production_output",
+      "production_consumption",
+      "manual_out",
+      "adjustment",
+    ]),
   );
 });
 
@@ -113,9 +178,17 @@ test("la historia es cronológica: el kardex sigue el orden de las fechas", asyn
 });
 
 test("la actividad reciente tiene historia con fechas pasadas", async () => {
-  const n = await count("select count(*)::int as n from public.activity_log where organization_id = $1", [demo]);
+  const n = await count(
+    "select count(*)::int as n from public.activity_log where organization_id = $1",
+    [demo],
+  );
   expect(n).toBeGreaterThan(100);
-  expect(await count("select count(*)::int as n from public.activity_log where organization_id = $1 and occurred_at > now()", [demo])).toBe(0);
+  expect(
+    await count(
+      "select count(*)::int as n from public.activity_log where organization_id = $1 and occurred_at > now()",
+      [demo],
+    ),
+  ).toBe(0);
 });
 
 test("es determinística: dos demos generan los mismos números", async () => {
@@ -125,7 +198,9 @@ test("es determinística: dos demos generan los mismos números", async () => {
 test("un usuario no puede tener dos organizaciones demo", async () => {
   await expect(
     db.as("service", (q) => q.one("select public.admin_create_demo_organization($1)", [owner])),
-  ).rejects.toThrow("Este usuario ya tiene una organización demo: restablecela desde Configuración");
+  ).rejects.toThrow(
+    "Este usuario ya tiene una organización demo: restablecela desde Configuración",
+  );
 });
 
 test("sólo se restablecen organizaciones demo y sólo sus admins", async () => {
@@ -139,14 +214,19 @@ test("sólo se restablecen organizaciones demo y sólo sus admins", async () => 
 
 test("restablecer la demo conserva el id y las membresías y no toca la fábrica real", async () => {
   await db.as(owner, (q) =>
-    q.exec("insert into public.categories (organization_id, name) values ($1, 'Mi categoría')", [realOrg]),
+    q.exec("insert into public.categories (organization_id, name) values ($1, 'Mi categoría')", [
+      realOrg,
+    ]),
   );
   const realBefore = await fingerprint(realOrg);
   const demoBefore = await fingerprint(demo);
   await db.as(owner, (q) => q.exec("select public.reset_demo_organization($1)", [demo]));
   expect(await fingerprint(demo)).toEqual(demoBefore);
   expect(await fingerprint(realOrg)).toEqual(realBefore);
-  const m = await db.su.one<{ role: string }>("select role from public.memberships where organization_id = $1 and user_id = $2", [demo, owner]);
+  const m = await db.su.one<{ role: string }>(
+    "select role from public.memberships where organization_id = $1 and user_id = $2",
+    [demo, owner],
+  );
   expect(m.role).toBe("admin");
 });
 

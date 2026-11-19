@@ -23,7 +23,9 @@ export const submitDemoRequest = createPublicAction({
     if (values.website) return null;
 
     const secret = getSecretKey();
-    const ipHash = createHmac("sha256", secret).update(clientIp(await headers())).digest("hex");
+    const ipHash = createHmac("sha256", secret)
+      .update(clientIp(await headers()))
+      .digest("hex");
     const { error } = await createAdminClient().rpc("submit_demo_request", {
       p_name: values.name,
       p_company: values.company,

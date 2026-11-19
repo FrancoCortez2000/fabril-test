@@ -18,7 +18,8 @@ export const signIn = createPublicAction({
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      if (error.code === "invalid_credentials") throw new ActionError("El email o la contraseña no son correctos");
+      if (error.code === "invalid_credentials")
+        throw new ActionError("El email o la contraseña no son correctos");
       if (error.code === "over_request_rate_limit") throw new ActionError(RATE_LIMIT);
       throw new ActionError("No pudimos iniciar sesión. Probá de nuevo.");
     }

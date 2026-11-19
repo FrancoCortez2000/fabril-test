@@ -24,14 +24,23 @@ test("al enviar vacío muestra los errores de email y de contraseña", async () 
 
 test("envía las credenciales con la ruta de destino y muestra el error del servidor", async () => {
   search = "next=%2Fapp%2Fproductos";
-  vi.mocked(signIn).mockResolvedValue({ ok: false, error: "El email o la contraseña no son correctos" });
+  vi.mocked(signIn).mockResolvedValue({
+    ok: false,
+    error: "El email o la contraseña no son correctos",
+  });
   render(<LoginForm />);
   await userEvent.type(screen.getByLabelText("Email"), "ana@fabrica.com");
   await userEvent.type(screen.getByLabelText("Contraseña"), "secreto123");
   await userEvent.click(screen.getByRole("button", { name: "Ingresar" }));
 
-  expect(signIn).toHaveBeenCalledWith({ email: "ana@fabrica.com", password: "secreto123", next: "/app/productos" });
-  expect(await screen.findByRole("alert")).toHaveTextContent("El email o la contraseña no son correctos");
+  expect(signIn).toHaveBeenCalledWith({
+    email: "ana@fabrica.com",
+    password: "secreto123",
+    next: "/app/productos",
+  });
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "El email o la contraseña no son correctos",
+  );
   expect(screen.getByLabelText("Email")).toHaveValue("ana@fabrica.com");
 });
 

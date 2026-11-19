@@ -6,7 +6,13 @@ import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { regenerateInvite, setMemberStatus } from "@/features/members/actions";
 import { InviteDialog } from "@/features/members/components/invite-dialog";
 import { InviteLink } from "@/features/members/components/invite-link";
@@ -30,7 +36,11 @@ export function MembersPanel({ members, isDemo }: { members: MemberRow[]; isDemo
       toast.error(res.error);
       throw new Error(res.error);
     }
-    toast.success(status === "disabled" ? `${member.name} ya no puede ingresar` : `${member.name} puede volver a ingresar`);
+    toast.success(
+      status === "disabled"
+        ? `${member.name} ya no puede ingresar`
+        : `${member.name} puede volver a ingresar`,
+    );
   }
 
   function newLink(member: MemberRow) {
@@ -63,11 +73,16 @@ export function MembersPanel({ members, isDemo }: { members: MemberRow[]; isDemo
         {members.map((m) => {
           const state = STATE[m.state];
           return (
-            <li key={m.userId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
+            <li
+              key={m.userId}
+              className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5"
+            >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
                   {m.name}
-                  {m.isCurrentUser ? <span className="ml-2 text-13 font-normal text-muted-foreground">(vos)</span> : null}
+                  {m.isCurrentUser ? (
+                    <span className="ml-2 text-13 font-normal text-muted-foreground">(vos)</span>
+                  ) : null}
                 </p>
                 <p className="truncate text-13 text-muted-foreground">{m.email}</p>
               </div>
@@ -79,8 +94,17 @@ export function MembersPanel({ members, isDemo }: { members: MemberRow[]; isDemo
                 {m.isCurrentUser || isDemo ? null : (
                   <>
                     {m.state === "pending" ? (
-                      <Button variant="ghost" size="sm" onClick={() => newLink(m)} disabled={pendingId === m.userId}>
-                        {pendingId === m.userId ? <Loader2 aria-hidden className="animate-spin" /> : <Link2 aria-hidden />}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => newLink(m)}
+                        disabled={pendingId === m.userId}
+                      >
+                        {pendingId === m.userId ? (
+                          <Loader2 aria-hidden className="animate-spin" />
+                        ) : (
+                          <Link2 aria-hidden />
+                        )}
                         Nuevo enlace
                       </Button>
                     ) : null}

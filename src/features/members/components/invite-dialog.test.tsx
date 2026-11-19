@@ -27,7 +27,10 @@ test("muestra el enlace de invitación y lo copia", async () => {
   const user = userEvent.setup();
   const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
   const url = "http://localhost:3000/auth/confirm?token_hash=abc&type=invite&next=/restablecer";
-  vi.mocked(inviteMember).mockResolvedValue({ ok: true, data: { inviteUrl: url, existing: false } });
+  vi.mocked(inviteMember).mockResolvedValue({
+    ok: true,
+    data: { inviteUrl: url, existing: false },
+  });
   render(<InviteDialog />);
   await openAndFill();
 
@@ -39,15 +42,25 @@ test("muestra el enlace de invitación y lo copia", async () => {
 });
 
 test("si el usuario ya existía avisa que puede entrar con su contraseña", async () => {
-  vi.mocked(inviteMember).mockResolvedValue({ ok: true, data: { inviteUrl: null, existing: true } });
+  vi.mocked(inviteMember).mockResolvedValue({
+    ok: true,
+    data: { inviteUrl: null, existing: true },
+  });
   render(<InviteDialog />);
   await openAndFill();
-  expect(await screen.findByRole("status")).toHaveTextContent("ya puede entrar a esta fábrica con su contraseña");
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "ya puede entrar a esta fábrica con su contraseña",
+  );
 });
 
 test("un error del servidor se muestra en el formulario", async () => {
-  vi.mocked(inviteMember).mockResolvedValue({ ok: false, error: "Ese email ya tiene acceso a esta fábrica" });
+  vi.mocked(inviteMember).mockResolvedValue({
+    ok: false,
+    error: "Ese email ya tiene acceso a esta fábrica",
+  });
   render(<InviteDialog />);
   await openAndFill();
-  expect(await screen.findByRole("alert")).toHaveTextContent("Ese email ya tiene acceso a esta fábrica");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Ese email ya tiene acceso a esta fábrica",
+  );
 });

@@ -630,18 +630,11 @@ begin
 end
 $$;
 
--- Restablecer (desde Configuración, sólo admins y sólo en organizaciones demo) ----------------------
-
-create function public.reset_demo_organization(p_org uuid) returns void
-language plpgsql security definer set search_path = '' as $$
-declare
-  v_actor uuid := private.require_role(p_org, '{admin}');
+-- Borra todos los datos de negocio de una fábrica (no la fábrica ni sus membresías), en orden explícito.
+-- Sólo la usan reset_demo_organization y admin_delete_organization.
+create function private.purge_organization_data(p_org uuid) returns void
+language plpgsql security definer set search_path = '' as $fn$
 begin
-  if not coalesce((select o.is_demo from public.organizations o where o.id = p_org), false) then
-    raise exception 'Sólo las organizaciones demo se pueden restablecer' using errcode = 'P0001';
-  end if;
-  perform 1 from public.organizations where id = p_org for update;
-
   perform set_config('fabril.purge', 'on', true);
   delete from public.stock_movements where organization_id = p_org;
   delete from public.production_order_events where organization_id = p_org;
@@ -663,6 +656,22 @@ begin
   delete from public.activity_log where organization_id = p_org;
   delete from public.document_sequences where organization_id = p_org;
   perform set_config('fabril.purge', 'off', true);
+end
+$fn$;
+
+-- Restablecer (desde Configuración, sólo admins y sólo en organizaciones demo) ----------------------
+
+create function public.reset_demo_organization(p_org uuid) returns void
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_actor uuid := private.require_role(p_org, '{admin}');
+begin
+  if not coalesce((select o.is_demo from public.organizations o where o.id = p_org), false) then
+    raise exception 'Sólo las organizaciones demo se pueden restablecer' using errcode = 'P0001';
+  end if;
+  perform 1 from public.organizations where id = p_org for update;
+
+  perform private.purge_organization_data(p_org);
 
   perform private.seed_demo(p_org, v_actor);
   perform private.log_activity(p_org, v_actor, 'organization', p_org, 'demo_reset', 'Restableció los datos de demostración');

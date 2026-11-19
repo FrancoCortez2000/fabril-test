@@ -20,7 +20,11 @@ export const getSession = cache(async (): Promise<AppSession | null> => {
   const userId = claims.sub;
 
   const [profileRes, membershipsRes, cookieStore] = await Promise.all([
-    supabase.from("profiles").select("full_name, last_organization_id").eq("id", userId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("full_name, last_organization_id")
+      .eq("id", userId)
+      .maybeSingle(),
     supabase
       .from("memberships")
       .select("role, organization:organizations(id, name, is_demo)")
@@ -32,7 +36,14 @@ export const getSession = cache(async (): Promise<AppSession | null> => {
   const organizations: SessionOrganization[] = (membershipsRes.data ?? [])
     .flatMap((m) =>
       m.organization
-        ? [{ id: m.organization.id, name: m.organization.name, isDemo: m.organization.is_demo, role: m.role }]
+        ? [
+            {
+              id: m.organization.id,
+              name: m.organization.name,
+              isDemo: m.organization.is_demo,
+              role: m.role,
+            },
+          ]
         : [],
     )
     .sort((a, b) => Number(a.isDemo) - Number(b.isDemo) || a.name.localeCompare(b.name, "es"));

@@ -81,7 +81,9 @@ export async function createTestDb(): Promise<TestDb> {
         const role = special ? ROLE[who] : "authenticated";
         const claims = special ? { role } : { sub: who, role: "authenticated" };
         await tx.exec(`set local role ${role}`);
-        await tx.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify(claims)]);
+        await tx.query("select set_config('request.jwt.claims', $1, true)", [
+          JSON.stringify(claims),
+        ]);
         return fn(makeQuery(tx));
       });
     },

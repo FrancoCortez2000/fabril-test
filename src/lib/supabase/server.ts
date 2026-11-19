@@ -17,7 +17,8 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          for (const { name, value, options } of cookiesToSet) cookieStore.set(name, value, options);
+          for (const { name, value, options } of cookiesToSet)
+            cookieStore.set(name, value, options);
         } catch {
           // En Server Components no se pueden escribir cookies: el proxy se encarga de refrescar la sesión.
         }

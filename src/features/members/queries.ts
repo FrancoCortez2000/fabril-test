@@ -19,9 +19,12 @@ export async function listMembers(session: AppSession): Promise<MemberRow[]> {
   if (error) throw error;
   if (!memberships?.length) return [];
 
-  const { data: accounts, error: accountsError } = await createAdminClient().rpc("admin_list_member_accounts", {
-    p_org: orgId,
-  });
+  const { data: accounts, error: accountsError } = await createAdminClient().rpc(
+    "admin_list_member_accounts",
+    {
+      p_org: orgId,
+    },
+  );
   if (accountsError) throw accountsError;
   const byUser = new Map((accounts ?? []).map((a) => [a.user_id, a]));
 
@@ -32,9 +35,13 @@ export async function listMembers(session: AppSession): Promise<MemberRow[]> {
         userId: m.user_id,
         name: m.profile?.full_name ?? account?.email ?? "Usuario",
         email: account?.email ?? "",
-        state: m.status === "disabled" ? "disabled" : account?.last_sign_in_at ? "active" : "pending",
+        state:
+          m.status === "disabled" ? "disabled" : account?.last_sign_in_at ? "active" : "pending",
         isCurrentUser: m.user_id === session.user.id,
       };
     })
-    .sort((a, b) => Number(b.isCurrentUser) - Number(a.isCurrentUser) || a.name.localeCompare(b.name, "es"));
+    .sort(
+      (a, b) =>
+        Number(b.isCurrentUser) - Number(a.isCurrentUser) || a.name.localeCompare(b.name, "es"),
+    );
 }

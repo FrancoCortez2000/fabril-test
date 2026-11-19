@@ -9,7 +9,11 @@ const noRethrow = () => {};
 test("con datos inválidos devuelve fieldErrors y no llama al handler", async () => {
   const handler = vi.fn();
   const res = await runAction({ name: "a" }, { schema, handler }, ctx, noRethrow);
-  expect(res).toEqual({ ok: false, error: "Revisá los datos marcados", fieldErrors: { name: ["Muy corto"] } });
+  expect(res).toEqual({
+    ok: false,
+    error: "Revisá los datos marcados",
+    fieldErrors: { name: ["Muy corto"] },
+  });
   expect(handler).not.toHaveBeenCalled();
 });
 

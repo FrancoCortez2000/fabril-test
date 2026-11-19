@@ -16,7 +16,8 @@ import { FormAlert } from "@/components/feedback/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 
-const LINK_ERROR = "El enlace venció o ya se usó. Pedí uno nuevo desde “¿Olvidaste tu contraseña?”.";
+const LINK_ERROR =
+  "El enlace venció o ya se usó. Pedí uno nuevo desde “¿Olvidaste tu contraseña?”.";
 
 export function LoginForm() {
   const searchParams = useSearchParams();

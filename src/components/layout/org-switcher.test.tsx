@@ -9,8 +9,18 @@ vi.mock("@/features/organizations/actions", () => ({ switchOrganization: vi.fn()
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 
 const orgs = [
-  { id: "11111111-1111-4111-8111-111111111111", name: "Mi Fábrica", isDemo: false, role: "admin" as const },
-  { id: "22222222-2222-4222-8222-222222222222", name: "Plásticos del Litoral S.A.", isDemo: true, role: "admin" as const },
+  {
+    id: "11111111-1111-4111-8111-111111111111",
+    name: "Mi Fábrica",
+    isDemo: false,
+    role: "admin" as const,
+  },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    name: "Plásticos del Litoral S.A.",
+    isDemo: true,
+    role: "admin" as const,
+  },
 ];
 
 beforeAll(() => {

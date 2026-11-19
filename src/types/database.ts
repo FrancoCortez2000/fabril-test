@@ -58,7 +58,11 @@ export type Database = {
           updated_at: string;
         };
         Insert: { id: string; full_name: string };
-        Update: { full_name?: string; avatar_path?: string | null; last_organization_id?: string | null };
+        Update: {
+          full_name?: string;
+          avatar_path?: string | null;
+          last_organization_id?: string | null;
+        };
         Relationships: [];
       };
       memberships: {

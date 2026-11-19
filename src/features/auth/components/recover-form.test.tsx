@@ -20,7 +20,10 @@ test("tras enviar muestra un mensaje neutro que no revela si el email existe", a
 });
 
 test("un error del servidor se muestra como alerta", async () => {
-  vi.mocked(requestPasswordReset).mockResolvedValue({ ok: false, error: "No pudimos completar la operación. Probá de nuevo." });
+  vi.mocked(requestPasswordReset).mockResolvedValue({
+    ok: false,
+    error: "No pudimos completar la operación. Probá de nuevo.",
+  });
   render(<RecoverForm />);
   await userEvent.type(screen.getByLabelText("Email de tu cuenta"), "ana@x.com");
   await userEvent.click(screen.getByRole("button", { name: "Enviar enlace" }));

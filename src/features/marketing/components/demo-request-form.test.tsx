@@ -19,7 +19,12 @@ test("al enviar guarda la solicitud y confirma con el email de contacto", async 
   render(<DemoRequestForm />);
   await fill();
   expect(submitDemoRequest).toHaveBeenCalledWith(
-    expect.objectContaining({ name: "Laura Benítez", company: "Plásticos SA", email: "laura@plasticos.com", website: "" }),
+    expect.objectContaining({
+      name: "Laura Benítez",
+      company: "Plásticos SA",
+      email: "laura@plasticos.com",
+      website: "",
+    }),
   );
   const status = await screen.findByRole("status");
   expect(status).toHaveTextContent("Recibimos tu solicitud");
@@ -33,5 +38,7 @@ test("el límite de envíos se informa", async () => {
   });
   render(<DemoRequestForm />);
   await fill();
-  expect(await screen.findByRole("alert")).toHaveTextContent("Recibimos varias solicitudes desde tu conexión");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Recibimos varias solicitudes desde tu conexión",
+  );
 });

@@ -16,7 +16,9 @@ beforeAll(async () => {
 afterAll(() => db.close());
 
 test("cada usuario ve sólo su organización", async () => {
-  const rows = await db.as(userA, (q) => q.many<{ id: string }>("select id from public.organizations"));
+  const rows = await db.as(userA, (q) =>
+    q.many<{ id: string }>("select id from public.organizations"),
+  );
   expect(rows.map((r) => r.id)).toEqual([orgA]);
 });
 
@@ -27,15 +29,17 @@ test("anon no ve organizaciones", async () => {
 });
 
 test("el perfil se crea al crear el usuario", async () => {
-  const p = await db.su.one<{ full_name: string }>("select full_name from public.profiles where id = $1", [
-    userA,
-  ]);
+  const p = await db.su.one<{ full_name: string }>(
+    "select full_name from public.profiles where id = $1",
+    [userA],
+  );
   expect(p.full_name).toBe("Ana Pérez");
 
   const laura = await db.createUser("laura@x.com");
-  const p2 = await db.su.one<{ full_name: string }>("select full_name from public.profiles where id = $1", [
-    laura,
-  ]);
+  const p2 = await db.su.one<{ full_name: string }>(
+    "select full_name from public.profiles where id = $1",
+    [laura],
+  );
   expect(p2.full_name).toBe("laura");
 });
 
@@ -61,10 +65,10 @@ test("el creador queda como admin activo", async () => {
 test("no se puede deshabilitar al último admin", async () => {
   await expect(
     db.as(userA, (q) =>
-      q.exec("update public.memberships set status = 'disabled' where organization_id = $1 and user_id = $2", [
-        orgA,
-        userA,
-      ]),
+      q.exec(
+        "update public.memberships set status = 'disabled' where organization_id = $1 and user_id = $2",
+        [orgA, userA],
+      ),
     ),
   ).rejects.toThrow("La fábrica tiene que tener al menos un administrador activo");
 });
@@ -89,7 +93,10 @@ test("con dos admins sí se puede deshabilitar a uno", async () => {
 
 test("no se puede borrar la membresía del último admin", async () => {
   await expect(
-    db.su.exec("delete from public.memberships where organization_id = $1 and user_id = $2", [orgB, userB]),
+    db.su.exec("delete from public.memberships where organization_id = $1 and user_id = $2", [
+      orgB,
+      userB,
+    ]),
   ).rejects.toThrow("La fábrica tiene que tener al menos un administrador activo");
 });
 
@@ -101,35 +108,50 @@ test("next_document_code numera por tipo y año", async () => {
   expect((await code("OP")).c).toBe(`OP-${year}-0002`);
   expect((await code("OC")).c).toBe(`OC-${year}-0001`);
   // otra organización arranca su propia numeración
-  const other = await db.su.one<{ c: string }>("select private.next_document_code($1, 'OP', now()) as c", [orgB]);
+  const other = await db.su.one<{ c: string }>(
+    "select private.next_document_code($1, 'OP', now()) as c",
+    [orgB],
+  );
   expect(other.c).toBe(`OP-${year}-0001`);
 });
 
 test("un admin no puede cambiar is_demo ni mover membresías de organización", async () => {
   await expect(
-    db.as(userA, (q) => q.exec("update public.organizations set is_demo = true where id = $1", [orgA])),
+    db.as(userA, (q) =>
+      q.exec("update public.organizations set is_demo = true where id = $1", [orgA]),
+    ),
   ).rejects.toThrow(/permission denied/);
   await expect(
     db.as(userA, (q) =>
-      q.exec("update public.memberships set organization_id = $1 where user_id = $2", [orgB, userA]),
+      q.exec("update public.memberships set organization_id = $1 where user_id = $2", [
+        orgB,
+        userA,
+      ]),
     ),
   ).rejects.toThrow(/permission denied/);
 });
 
 test("un admin puede editar la configuración de su fábrica, no la de otra", async () => {
   const own = await db.as(userA, (q) =>
-    q.many("update public.organizations set default_waste_pct = 4 where id = $1 returning id", [orgA]),
+    q.many("update public.organizations set default_waste_pct = 4 where id = $1 returning id", [
+      orgA,
+    ]),
   );
   expect(own).toHaveLength(1);
   const other = await db.as(userA, (q) =>
-    q.many("update public.organizations set default_waste_pct = 4 where id = $1 returning id", [orgB]),
+    q.many("update public.organizations set default_waste_pct = 4 where id = $1 returning id", [
+      orgB,
+    ]),
   );
   expect(other).toHaveLength(0);
 });
 
 test("un usuario no puede actualizar membresías de otra fábrica", async () => {
   const rows = await db.as(userA, (q) =>
-    q.many("update public.memberships set role = 'admin' where organization_id = $1 returning user_id", [orgB]),
+    q.many(
+      "update public.memberships set role = 'admin' where organization_id = $1 returning user_id",
+      [orgB],
+    ),
   );
   expect(rows).toHaveLength(0);
 });
@@ -137,10 +159,10 @@ test("un usuario no puede actualizar membresías de otra fábrica", async () => 
 test("authenticated no puede insertar membresías ni escribir activity_log", async () => {
   await expect(
     db.as(userA, (q) =>
-      q.exec("insert into public.memberships (organization_id, user_id, role) values ($1, $2, 'admin')", [
-        orgB,
-        userA,
-      ]),
+      q.exec(
+        "insert into public.memberships (organization_id, user_id, role) values ($1, $2, 'admin')",
+        [orgB, userA],
+      ),
     ),
   ).rejects.toThrow(/permission denied/);
   await expect(
