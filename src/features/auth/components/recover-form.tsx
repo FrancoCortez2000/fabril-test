@@ -2,17 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { AUTH_PENDING_MESSAGE } from "@/features/auth/components/auth-card";
+import { requestPasswordReset } from "@/features/auth/actions";
+import { FormAlert } from "@/features/auth/components/form-alert";
 import { recoverSchema, type RecoverValues } from "@/features/auth/schemas";
 
 export function RecoverForm() {
+  const [result, setResult] = useState<{ tone: "error" | "success"; message: string } | null>(null);
   const { control, handleSubmit, formState } = useForm<RecoverValues>({
     resolver: zodResolver(recoverSchema),
     defaultValues: { email: "" },
@@ -20,14 +22,24 @@ export function RecoverForm() {
     reValidateMode: "onChange",
   });
 
-  async function onSubmit() {
-    await new Promise((r) => setTimeout(r, 400));
-    toast.info(AUTH_PENDING_MESSAGE);
+  async function onSubmit(values: RecoverValues) {
+    setResult(null);
+    const res = await requestPasswordReset(values);
+    setResult(
+      res.ok
+        ? {
+            tone: "success",
+            message:
+              "Si el email está registrado, te enviamos un enlace para elegir una nueva contraseña. Revisá tu correo, también la carpeta de spam.",
+          }
+        : { tone: "error", message: res.error },
+    );
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup className="gap-5">
+        {result ? <FormAlert tone={result.tone}>{result.message}</FormAlert> : null}
         <FormField
           control={control}
           name="email"

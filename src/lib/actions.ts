@@ -26,7 +26,7 @@ export type ActionContext = {
 export function createAction<S extends z.ZodType, R>(
   def: ActionDefinition<S, R, ActionContext> & { permission?: Permission },
 ): (input: unknown) => Promise<ActionResult<R>> {
-  return (input) =>
+  return async (input) =>
     runAction(
       input,
       def,
@@ -45,5 +45,5 @@ export function createAction<S extends z.ZodType, R>(
 export function createPublicAction<S extends z.ZodType, R>(
   def: ActionDefinition<S, R, undefined>,
 ): (input: unknown) => Promise<ActionResult<R>> {
-  return (input) => runAction(input, def, async () => undefined, unstable_rethrow);
+  return async (input) => runAction(input, def, async () => undefined, unstable_rethrow);
 }

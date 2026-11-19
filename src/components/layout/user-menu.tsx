@@ -2,6 +2,7 @@
 
 import { LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useTransition } from "react";
 
 import { THEME_OPTIONS } from "@/components/layout/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,8 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import type { AppSession } from "@/fixtures/session";
+import { signOut } from "@/features/auth/actions";
+import type { AppSession } from "@/lib/auth/types";
 
 function initials(name: string) {
   return name
@@ -28,6 +29,7 @@ function initials(name: string) {
 
 export function UserMenu({ user }: { user: AppSession["user"] }) {
   const { theme, setTheme } = useTheme();
+  const [pending, startTransition] = useTransition();
 
   return (
     <DropdownMenu>
@@ -56,18 +58,10 @@ export function UserMenu({ user }: { user: AppSession["user"] }) {
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {/* span: un elemento deshabilitado no recibe el hover del tooltip */}
-            <span className="block">
-              <DropdownMenuItem disabled>
-                <LogOut aria-hidden />
-                Cerrar sesión
-              </DropdownMenuItem>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="left">Disponible al conectar la autenticación</TooltipContent>
-        </Tooltip>
+        <DropdownMenuItem onSelect={() => startTransition(() => signOut())} disabled={pending}>
+          <LogOut aria-hidden />
+          Cerrar sesión
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

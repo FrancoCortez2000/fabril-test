@@ -2,17 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
-import { AUTH_PENDING_MESSAGE } from "@/features/auth/components/auth-card";
+import { updatePassword } from "@/features/auth/actions";
+import { FormAlert } from "@/features/auth/components/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { resetPasswordSchema, type ResetPasswordValues } from "@/features/auth/schemas";
 
 export function ResetForm() {
+  const [serverError, setServerError] = useState<string | null>(null);
   const { control, handleSubmit, formState } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirm: "" },
@@ -20,14 +22,17 @@ export function ResetForm() {
     reValidateMode: "onChange",
   });
 
-  async function onSubmit() {
-    await new Promise((r) => setTimeout(r, 400));
-    toast.info(AUTH_PENDING_MESSAGE);
+  async function onSubmit(values: ResetPasswordValues) {
+    setServerError(null);
+    // Si se guarda, la acción redirige al panel.
+    const res = await updatePassword(values);
+    if (res && !res.ok) setServerError(res.error);
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup className="gap-5">
+        {serverError ? <FormAlert>{serverError}</FormAlert> : null}
         <FormField
           control={control}
           name="password"

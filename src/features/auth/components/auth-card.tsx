@@ -22,6 +22,3 @@ export function AuthCard({
     </div>
   );
 }
-
-/** Aviso mientras la autenticación no está conectada (Etapa 3). */
-export const AUTH_PENDING_MESSAGE = "La autenticación se conecta en la Etapa 3";

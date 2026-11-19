@@ -3,18 +3,27 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { AUTH_PENDING_MESSAGE } from "@/features/auth/components/auth-card";
+import { signIn } from "@/features/auth/actions";
+import { FormAlert } from "@/features/auth/components/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 
+const LINK_ERROR = "El enlace venció o ya se usó. Pedí uno nuevo desde “¿Olvidaste tu contraseña?”.";
+
 export function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? undefined;
+  const [serverError, setServerError] = useState<string | null>(
+    searchParams.get("error") === "enlace" ? LINK_ERROR : null,
+  );
   const { control, handleSubmit, formState } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -22,16 +31,17 @@ export function LoginForm() {
     reValidateMode: "onChange",
   });
 
-  async function onSubmit() {
-    await new Promise((r) => setTimeout(r, 400));
-    toast.info(AUTH_PENDING_MESSAGE, {
-      description: "Mientras tanto podés recorrer el panel con datos de ejemplo en /app.",
-    });
+  async function onSubmit(values: LoginValues) {
+    setServerError(null);
+    // Si las credenciales son correctas, la acción redirige al panel.
+    const result = await signIn({ ...values, next });
+    if (result && !result.ok) setServerError(result.error);
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       <FieldGroup className="gap-5">
+        {serverError ? <FormAlert>{serverError}</FormAlert> : null}
         <FormField
           control={control}
           name="email"

@@ -8,7 +8,7 @@ import { Logo } from "@/components/layout/logo";
 import { NavList } from "@/components/layout/nav-list";
 import { OrgSwitcher } from "@/components/layout/org-switcher";
 import { Button } from "@/components/ui/button";
-import type { AppSession } from "@/fixtures/session";
+import type { AppSession } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "fabril:sidebar-collapsed";
