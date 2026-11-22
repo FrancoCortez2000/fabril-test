@@ -27,3 +27,16 @@ test("en desarrollo permite también localhost", () => {
     "http://localhost:3000/auth/confirm**",
   );
 });
+
+test("sin SMTP propio (plan gratis) omite las plantillas pero mantiene la seguridad", () => {
+  const config = buildAuthConfig("https://fabril.app", { emailTemplates: false });
+  expect(config).toMatchObject({
+    disable_signup: true,
+    site_url: "https://fabril.app",
+    uri_allow_list: "https://fabril.app/auth/confirm**",
+    password_min_length: 8,
+    mailer_otp_exp: 86400,
+  });
+  expect(Object.keys(config).some((k) => k.startsWith("mailer_templates_"))).toBe(false);
+  expect(Object.keys(config).some((k) => k.startsWith("mailer_subjects_"))).toBe(false);
+});

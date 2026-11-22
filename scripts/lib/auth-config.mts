@@ -2,15 +2,23 @@
  * Configuración de Supabase Auth que aplica `npm run auth:config` (API de administración).
  * Registro público desactivado: las cuentas nacen por `fabrica:crear` o por invitación.
  */
-export function buildAuthConfig(siteUrlRaw: string) {
+export function buildAuthConfig(
+  siteUrlRaw: string,
+  { emailTemplates = true }: { emailTemplates?: boolean } = {},
+): Record<string, string | number | boolean> {
   const siteUrl = siteUrlRaw.replace(/\/+$/, "");
-  return {
+  const security = {
     disable_signup: true,
     site_url: siteUrl,
     uri_allow_list: `${siteUrl}/auth/confirm**`,
     password_min_length: 8,
     // Los enlaces de invitación y recuperación duran 24 h (lo que promete la interfaz).
     mailer_otp_exp: 86400,
+  };
+  // Supabase sólo deja cambiar las plantillas con un SMTP propio (o en planes pagos).
+  if (!emailTemplates) return security;
+  return {
+    ...security,
     mailer_subjects_recovery: "Elegí una nueva contraseña para FABRIL",
     mailer_templates_recovery_content: emailTemplate(
       "Elegí una nueva contraseña",

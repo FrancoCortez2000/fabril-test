@@ -43,7 +43,7 @@ Completá `.env.local` (git lo ignora; nunca lo subas):
 ```bash
 npm run db:push      # aplica supabase/migrations al proyecto
 npm run db:types     # regenera src/types/database.ts desde el esquema
-npm run auth:config  # desactiva el registro público, fija URLs y emails en español
+npm run auth:config  # desactiva el registro público y fija URLs (emails en español sólo con SMTP propio)
 npm run db:verify    # prueba de aislamiento entre fábricas contra la nube + security advisor
 ```
 

@@ -30,7 +30,7 @@ function supabase(args: string[], capture = false) {
 const command = process.argv[2];
 if (command === "push") {
   supabase(["link", "--project-ref", env.SUPABASE_PROJECT_REF]);
-  supabase(["db", "push"]);
+  supabase(["db", "push", "--remote", "--yes"]);
   console.log("\n✓ Migraciones aplicadas.");
 } else if (command === "types") {
   const types = supabase(
