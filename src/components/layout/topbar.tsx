@@ -3,7 +3,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { DemoBadge } from "@/components/layout/org-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
-import type { AppSession } from "@/fixtures/session";
+import type { AppSession } from "@/lib/auth/types";
 
 export function Topbar({ session }: { session: AppSession }) {
   const activeOrg = session.organizations.find((o) => o.id === session.activeOrganizationId);

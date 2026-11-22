@@ -2,14 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
+import { FormAlert } from "@/components/feedback/form-alert";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { submitDemoRequest } from "@/features/marketing/actions";
 import { demoRequestSchema, type DemoRequestValues } from "@/features/marketing/schemas";
 
 const EMPTY: DemoRequestValues = {
@@ -23,6 +25,8 @@ const EMPTY: DemoRequestValues = {
 };
 
 export function DemoRequestForm() {
+  const [sent, setSent] = useState<{ name: string; email: string } | null>(null);
+  const [serverError, setServerError] = useState<string | null>(null);
   const form = useForm<DemoRequestValues>({
     resolver: zodResolver(demoRequestSchema),
     defaultValues: EMPTY,
@@ -31,12 +35,25 @@ export function DemoRequestForm() {
   });
   const { control, handleSubmit, formState, register } = form;
 
-  async function onSubmit() {
-    // Etapa 2: el formulario valida, pero el envío se conecta a la base en la Etapa 3.
-    await new Promise((r) => setTimeout(r, 400));
-    toast.info("El envío se habilita al conectar la base de datos", {
-      description: "Tus datos son válidos; en la Etapa 3 la solicitud queda guardada.",
-    });
+  async function onSubmit(values: DemoRequestValues) {
+    setServerError(null);
+    const res = await submitDemoRequest(values);
+    if (res.ok) setSent({ name: values.name.split(" ")[0] ?? values.name, email: values.email });
+    else setServerError(res.error);
+  }
+
+  if (sent) {
+    return (
+      <div className="rounded-xl border bg-surface p-5 sm:p-6">
+        <FormAlert tone="success">
+          <p className="font-medium">Gracias, {sent.name}. Recibimos tu solicitud.</p>
+          <p className="mt-1 text-muted-foreground">
+            Te vamos a escribir a {sent.email} para coordinar una demostración con datos de tu
+            rubro.
+          </p>
+        </FormAlert>
+      </div>
+    );
   }
 
   return (
@@ -46,6 +63,7 @@ export function DemoRequestForm() {
       className="rounded-xl border bg-surface p-5 sm:p-6"
     >
       <FieldGroup className="gap-5">
+        {serverError ? <FormAlert>{serverError}</FormAlert> : null}
         <div className="grid gap-5 sm:grid-cols-2">
           <FormField
             control={control}

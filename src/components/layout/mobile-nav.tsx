@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import type { AppSession } from "@/fixtures/session";
+import type { AppSession } from "@/lib/auth/types";
 
 export function MobileNav({ session }: { session: AppSession }) {
   const [open, setOpen] = useState(false);

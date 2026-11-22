@@ -1,6 +1,8 @@
 "use client";
 
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -9,7 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { SessionOrganization } from "@/fixtures/session";
+import type { SessionOrganization } from "@/lib/auth/types";
+import { switchOrganization } from "@/features/organizations/actions";
 import { cn } from "@/lib/utils";
 
 export function DemoBadge({ className }: { className?: string }) {
@@ -43,8 +46,17 @@ export function OrgSwitcher({
   activeId: string;
   collapsed?: boolean;
 }) {
+  const [pending, startTransition] = useTransition();
   const active = organizations.find((o) => o.id === activeId) ?? organizations[0];
   if (!active) return null;
+
+  function choose(id: string) {
+    if (id === active?.id) return;
+    startTransition(async () => {
+      const result = await switchOrganization({ organizationId: id });
+      if (!result.ok) toast.error(result.error);
+    });
+  }
 
   return (
     <DropdownMenu>
@@ -52,7 +64,9 @@ export function OrgSwitcher({
         className={cn(
           "flex w-full items-center gap-2.5 rounded-md p-2 text-left hover:bg-sidebar-accent",
           collapsed && "justify-center",
+          pending && "opacity-60",
         )}
+        aria-busy={pending}
         aria-label={`Fábrica activa: ${active.name}. Cambiar de fábrica`}
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-surface text-xs font-semibold">
@@ -73,7 +87,7 @@ export function OrgSwitcher({
           Tus fábricas
         </DropdownMenuLabel>
         {organizations.map((org) => (
-          <DropdownMenuItem key={org.id} className="gap-2">
+          <DropdownMenuItem key={org.id} className="gap-2" onSelect={() => choose(org.id)}>
             <span className="flex-1 truncate">{org.name}</span>
             {org.isDemo ? <DemoBadge /> : null}
             {org.id === active.id ? <Check aria-hidden className="size-4" /> : null}
