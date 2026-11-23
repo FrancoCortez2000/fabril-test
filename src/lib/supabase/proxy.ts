@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { DEMO_COOKIE } from "@/lib/auth/demo";
 import { routeDecision } from "@/lib/auth/redirect";
 import { getPublicEnv } from "@/lib/env";
 
@@ -30,6 +31,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     request.nextUrl.pathname,
     request.nextUrl.search,
     Boolean(data?.claims?.sub),
+    request.cookies.has(DEMO_COOKIE),
   );
   if (!decision) return response;
 

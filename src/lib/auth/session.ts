@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { ACTIVE_ORG_COOKIE, resolveActiveOrganization } from "@/lib/auth/active-org";
+import { DEMO_COOKIE, demoSession } from "@/lib/auth/demo";
+import { getPublicDemoOrganization } from "@/lib/auth/demo-org";
 import type { AppSession, SessionOrganization } from "@/lib/auth/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -64,14 +66,25 @@ export const getSession = cache(async (): Promise<AppSession | null> => {
     },
     organizations,
     activeOrganizationId: active?.id ?? "",
-    role: active?.role ?? "admin",
+    role: active?.role ?? null,
+    mode: "member",
   };
 });
 
-/** Exige sesión y al menos una fábrica activa; si no, redirige. */
+/**
+ * Exige sesión y al menos una fábrica activa; si no, redirige. Sin sesión pero con la cookie de la
+ * demo, devuelve la sesión del visitante (sólo lectura). Una sesión real siempre tiene prioridad.
+ */
 export async function requireSession(): Promise<AppSession> {
   const session = await getSession();
-  if (!session) redirect("/ingresar");
-  if (!session.activeOrganizationId) redirect("/sin-acceso");
-  return session;
+  if (session) {
+    if (!session.activeOrganizationId) redirect("/sin-acceso");
+    return session;
+  }
+  if ((await cookies()).has(DEMO_COOKIE)) {
+    const org = await getPublicDemoOrganization();
+    if (!org) redirect("/ingresar?demo=no-disponible");
+    return demoSession(org);
+  }
+  redirect("/ingresar");
 }

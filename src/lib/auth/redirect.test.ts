@@ -49,3 +49,23 @@ describe("routeDecision", () => {
     expect(routeDecision("/restablecer", "", true)).toBeNull();
   });
 });
+
+describe("routeDecision en modo demo", () => {
+  test("sin sesión pero con la demo activa, el panel y el ingreso pasan", () => {
+    expect(routeDecision("/app", "", false, true)).toBeNull();
+    expect(routeDecision("/app/productos", "?q=balde", false, true)).toBeNull();
+    expect(routeDecision("/ingresar", "?demo=no-disponible", false, true)).toBeNull();
+  });
+
+  test("sin demo activa nada cambia", () => {
+    expect(routeDecision("/app", "", false, false)).toEqual({
+      redirectTo: "/ingresar?next=%2Fapp",
+    });
+    expect(routeDecision("/app", "", false)).toEqual({ redirectTo: "/ingresar?next=%2Fapp" });
+  });
+
+  test("con sesión real la bandera de demo se ignora", () => {
+    expect(routeDecision("/ingresar", "", true, true)).toEqual({ redirectTo: "/app" });
+    expect(routeDecision("/app", "", true, true)).toBeNull();
+  });
+});

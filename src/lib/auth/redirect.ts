@@ -22,13 +22,17 @@ export function safeNextPath(raw: string | null | undefined, fallback = "/app"):
 const isPanel = (pathname: string) => pathname === "/app" || pathname.startsWith("/app/");
 const GUEST_ONLY = new Set(["/ingresar", "/recuperar"]);
 
-/** Decisión del proxy: a dónde redirigir según la ruta y si hay sesión. */
+/**
+ * Decisión del proxy: a dónde redirigir según la ruta y si hay sesión. Con la demo activa y sin
+ * sesión, el panel queda abierto (los datos los limita la base); con sesión real, la bandera se ignora.
+ */
 export function routeDecision(
   pathname: string,
   search: string,
   isAuthenticated: boolean,
+  demoMode = false,
 ): { redirectTo: string } | null {
-  if (!isAuthenticated && isPanel(pathname)) {
+  if (!isAuthenticated && !demoMode && isPanel(pathname)) {
     return { redirectTo: `/ingresar?next=${encodeURIComponent(pathname + search)}` };
   }
   if (isAuthenticated && GUEST_ONLY.has(pathname)) {
