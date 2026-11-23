@@ -1477,6 +1477,13 @@ export type Database = {
             foreignKeyName: "stock_movements_reverses_movement_id_fkey";
             columns: ["reverses_movement_id"];
             isOneToOne: false;
+            referencedRelation: "movement_feed";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_movements_reverses_movement_id_fkey";
+            columns: ["reverses_movement_id"];
+            isOneToOne: false;
             referencedRelation: "stock_movements";
             referencedColumns: ["id"];
           },
@@ -1572,6 +1579,56 @@ export type Database = {
       };
     };
     Views: {
+      bom_usage: {
+        Row: {
+          item_id: string;
+          organization_id: string;
+          output_qty: number;
+          product_id: string;
+          product_name: string;
+          product_sku: string;
+          quantity: number;
+          waste_pct: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_costing";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_stock_status";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "bom_lines_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       item_catalog: {
         Row: {
           archived_at: string | null;
@@ -1583,6 +1640,7 @@ export type Database = {
           cost: number | null;
           current_stock: number;
           description: string | null;
+          has_movements: boolean | null;
           id: string;
           image_path: string | null;
           last_purchase_cost: number | null;
@@ -1653,6 +1711,59 @@ export type Database = {
           },
         ];
       };
+      item_purchase_lines: {
+        Row: {
+          expected_date: string | null;
+          item_id: string;
+          order_date: string;
+          organization_id: string;
+          purchase_code: string;
+          purchase_id: string;
+          quantity: number;
+          received_qty: number;
+          status: string;
+          supplier_name: string;
+          unit_price: number;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_costing";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_stock_status";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
       item_stock_status: {
         Row: {
           available: number | null;
@@ -1671,6 +1782,102 @@ export type Database = {
             columns: ["organization_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      movement_feed: {
+        Row: {
+          balance_after: number | null;
+          id: string;
+          item_id: string;
+          item_name: string;
+          item_sku: string;
+          movement_type: string;
+          occurred_at: string;
+          organization_id: string;
+          production_order_id: string | null;
+          purchase_receipt_line_id: string | null;
+          quantity: number;
+          reason: string | null;
+          reference: string | null;
+          reversed: boolean | null;
+          reverses_movement_id: string | null;
+          reversible: boolean | null;
+          total_cost: number | null;
+          unit_code: string;
+          unit_cost: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_costing";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_stock_status";
+            referencedColumns: ["organization_id", "item_id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "items";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_production_order_id_fkey";
+            columns: ["organization_id", "production_order_id"];
+            isOneToOne: false;
+            referencedRelation: "production_order_overview";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_production_order_id_fkey";
+            columns: ["organization_id", "production_order_id"];
+            isOneToOne: false;
+            referencedRelation: "production_orders";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_purchase_receipt_line_id_fkey";
+            columns: ["purchase_receipt_line_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_receipt_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_movements_reverses_movement_id_fkey";
+            columns: ["reverses_movement_id"];
+            isOneToOne: false;
+            referencedRelation: "movement_feed";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_movements_reverses_movement_id_fkey";
+            columns: ["reverses_movement_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_movements";
             referencedColumns: ["id"];
           },
         ];
