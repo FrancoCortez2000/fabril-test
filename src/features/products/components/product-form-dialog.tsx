@@ -34,7 +34,7 @@ import {
   productSchema,
   type ProductFormValues,
 } from "@/features/products/schemas";
-import type { ProductCategory } from "@/fixtures/products";
+import type { ItemCategory } from "@/features/items/types";
 
 const NO_CATEGORY = "__none__";
 
@@ -58,7 +58,7 @@ export function ProductFormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  categories: ProductCategory[];
+  categories: ItemCategory[];
   /** Si viene, el formulario edita ese producto. */
   initialValues?: ProductFormValues;
 }) {

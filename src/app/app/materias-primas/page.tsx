@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { PageHeader } from "@/components/data/page-header";
+import { ItemsList, ItemsListSkeleton } from "@/features/items/components/items-list";
 
 export const metadata: Metadata = { title: "Materias primas" };
 
-export default function MateriasPrimasPage() {
+export default function MateriasPrimasPage(props: PageProps<"/app/materias-primas">) {
   return (
-    <ModulePlaceholder
-      title="Materias primas"
-      description="Insumos y materiales que se usan en las recetas."
-    />
+    <>
+      <PageHeader
+        title="Materias primas"
+        description="Lo que comprás para fabricar, con su stock y su costo promedio."
+      />
+      <Suspense fallback={<ItemsListSkeleton />}>
+        <ItemsList kind="raw_material" searchParams={props.searchParams} />
+      </Suspense>
+    </>
   );
 }
