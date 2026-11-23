@@ -28,3 +28,50 @@ export const orderSchema = z
   });
 
 export type OrderFormValues = z.infer<typeof orderSchema>;
+
+const units = (label: string) =>
+  z
+    .number({ error: `Ingresá ${label} como número` })
+    .min(0, `${label[0]?.toUpperCase()}${label.slice(1)}: la cantidad no puede ser negativa`);
+
+const reason = (message: string) =>
+  z.string().trim().min(3, message).max(200, "Máximo 200 caracteres");
+
+export const startOrderSchema = z.object({ id: z.uuid() });
+
+/** Parte de avance: al menos una unidad buena o defectuosa. */
+export const reportProgressSchema = z
+  .object({
+    id: z.uuid(),
+    good: units("las unidades buenas"),
+    defective: units("las unidades defectuosas"),
+    notes: z.string().trim().max(300, "Máximo 300 caracteres"),
+  })
+  .refine((v) => v.good + v.defective > 0, {
+    path: ["good"],
+    message: "Indicá unidades buenas o defectuosas (mayores a cero)",
+  });
+
+export type ReportProgressValues = z.infer<typeof reportProgressSchema>;
+
+/** Completar la orden: cantidades finales (los consumos reales los toma la base de lo ya consumido). */
+export const completeOrderSchema = z.object({
+  id: z.uuid(),
+  good: units("las unidades buenas finales"),
+  defective: units("las unidades defectuosas finales"),
+  note: z.string().trim().max(300, "Máximo 300 caracteres"),
+});
+
+export type CompleteOrderValues = z.infer<typeof completeOrderSchema>;
+
+export const cancelOrderSchema = z.object({
+  id: z.uuid(),
+  reason: reason("Indicá el motivo de la cancelación"),
+});
+
+export type CancelOrderValues = z.infer<typeof cancelOrderSchema>;
+
+export const shortagePurchaseSchema = z.object({
+  orderId: z.uuid(),
+  supplierId: z.uuid("Elegí un proveedor"),
+});
