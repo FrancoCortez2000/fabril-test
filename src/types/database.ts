@@ -138,6 +138,13 @@ export type Database = {
             foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
             columns: ["organization_id", "component_item_id"];
             isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "bom_lines_organization_id_component_item_id_fkey";
+            columns: ["organization_id", "component_item_id"];
+            isOneToOne: false;
             referencedRelation: "item_costing";
             referencedColumns: ["organization_id", "item_id"];
           },
@@ -206,6 +213,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "boms_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
           },
           {
             foreignKeyName: "boms_organization_id_item_id_fkey";
@@ -815,6 +829,13 @@ export type Database = {
             foreignKeyName: "production_order_materials_organization_id_item_id_fkey";
             columns: ["organization_id", "item_id"];
             isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "production_order_materials_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
             referencedRelation: "item_costing";
             referencedColumns: ["organization_id", "item_id"];
           },
@@ -944,6 +965,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_orders_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
           },
           {
             foreignKeyName: "production_orders_organization_id_item_id_fkey";
@@ -1125,6 +1153,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
           },
           {
             foreignKeyName: "purchase_order_lines_organization_id_item_id_fkey";
@@ -1393,6 +1428,13 @@ export type Database = {
             foreignKeyName: "stock_movements_organization_id_item_id_fkey";
             columns: ["organization_id", "item_id"];
             isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_movements_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
             referencedRelation: "item_costing";
             referencedColumns: ["organization_id", "item_id"];
           },
@@ -1530,6 +1572,67 @@ export type Database = {
       };
     };
     Views: {
+      item_catalog: {
+        Row: {
+          archived_at: string | null;
+          available: number | null;
+          avg_cost: number;
+          category_id: string | null;
+          category_name: string | null;
+          committed: number | null;
+          cost: number | null;
+          current_stock: number;
+          description: string | null;
+          id: string;
+          image_path: string | null;
+          last_purchase_cost: number | null;
+          level: string | null;
+          min_stock: number;
+          name: string;
+          organization_id: string;
+          overhead_per_unit: number;
+          preferred_supplier_id: string | null;
+          sale_price: number | null;
+          sku: string;
+          standard_cost: number | null;
+          standard_labor_minutes: number;
+          status: string;
+          type: string;
+          unit_code: string;
+          unit_id: number;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "items_organization_id_category_id_fkey";
+            columns: ["organization_id", "category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "items_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "items_organization_id_preferred_supplier_id_fkey";
+            columns: ["organization_id", "preferred_supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "suppliers";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "items_unit_id_fkey";
+            columns: ["unit_id"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       item_costing: {
         Row: {
           item_id: string;
@@ -1615,6 +1718,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_orders_organization_id_item_id_fkey";
+            columns: ["organization_id", "item_id"];
+            isOneToOne: false;
+            referencedRelation: "item_catalog";
+            referencedColumns: ["organization_id", "id"];
           },
           {
             foreignKeyName: "production_orders_organization_id_item_id_fkey";
