@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Calculator,
   Factory,
   House,
   Package,
@@ -34,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Productos", href: "/app/productos", icon: Package, group: "operacion" },
   { label: "Materias primas", href: "/app/materias-primas", icon: Boxes, group: "operacion" },
   { label: "Compras", href: "/app/compras", icon: ShoppingCart, group: "operacion" },
+  { label: "Costos", href: "/app/costos", icon: Calculator, group: "operacion" },
   { label: "Configuración", href: "/app/configuracion", icon: Settings, group: "sistema" },
 ];
 
