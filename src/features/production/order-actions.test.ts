@@ -284,6 +284,8 @@ describe("completeOrder", () => {
     };
     const result = await completeOrder({ id: OP, good: 90, defective: 0, note: "" });
     expect(result.ok).toBe(false);
+    // la orden ya cambió de estado (control de calidad): la ficha tiene que refrescarse
+    expect(called("revalidate").length).toBeGreaterThan(0);
     if (!result.ok) {
       expect(result.error).toContain("Indicá las cantidades finales");
       expect(result.error).toContain("control de calidad");

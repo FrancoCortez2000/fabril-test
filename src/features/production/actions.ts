@@ -174,6 +174,8 @@ export const completeOrder = createAction({
     });
     if (error) {
       if (status === "in_progress") {
+        // El primer paso ya se hizo: la ficha tiene que mostrar "control de calidad".
+        revalidateProduction();
         throw new ActionError(
           `${mapDbError(error)} La orden quedó en control de calidad; podés volver a completarla.`,
         );
