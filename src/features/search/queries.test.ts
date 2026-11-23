@@ -39,7 +39,7 @@ test("busca en las cuatro fuentes de la fábrica y arma los enlaces", async () =
   db.tables = {
     item_catalog: {
       data: [
-        { id: "p1", type: "product", sku: "BAL-10L", name: "Balde 10 L rojo" },
+        { id: "p1", type: "finished_good", sku: "BAL-10L", name: "Balde 10 L rojo" },
         { id: "m1", type: "raw_material", sku: "PP", name: "Polipropileno" },
       ],
     },

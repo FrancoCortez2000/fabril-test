@@ -48,7 +48,7 @@ export async function searchRecords(orgId: string, term: string): Promise<Search
 
   return [
     ...(items.data ?? []).map((i): SearchHit => {
-      const product = i.type === "product";
+      const product = i.type === "finished_good";
       return {
         kind: product ? "product" : "raw_material",
         id: i.id as string,
