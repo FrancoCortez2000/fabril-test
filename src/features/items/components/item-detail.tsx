@@ -10,6 +10,8 @@ import {
   listSuppliers,
   listUsedIn,
 } from "@/features/items/detail-queries";
+import { getBom, listRawMaterialOptions } from "@/features/items/bom-queries";
+import { BomPanel } from "@/features/items/components/bom-panel";
 import { ItemActions } from "@/features/items/components/item-actions";
 import { ItemMovements } from "@/features/items/components/item-movements";
 import { ProductOrders, PurchaseHistory, UsedIn } from "@/features/items/components/item-related";
@@ -39,14 +41,17 @@ export async function ItemDetail({ kind, id }: { kind: ItemKind; id: string }) {
 
   const { item } = detail;
   const isProduct = kind === "finished_good";
-  const [movements, categories, suppliers, usedIn, purchases, orders] = await Promise.all([
-    listItemMovements(orgId, id, 50),
-    listCategories(orgId, kind),
-    isProduct ? Promise.resolve([]) : listSuppliers(orgId),
-    isProduct ? Promise.resolve([]) : listUsedIn(orgId, id),
-    isProduct ? Promise.resolve([]) : listRecentPurchases(orgId, id, 5),
-    isProduct ? listProductOrders(orgId, id, 10) : Promise.resolve([]),
-  ]);
+  const [movements, categories, suppliers, usedIn, purchases, orders, bom, materials] =
+    await Promise.all([
+      listItemMovements(orgId, id, 50),
+      listCategories(orgId, kind),
+      isProduct ? Promise.resolve([]) : listSuppliers(orgId),
+      isProduct ? Promise.resolve([]) : listUsedIn(orgId, id),
+      isProduct ? Promise.resolve([]) : listRecentPurchases(orgId, id, 5),
+      isProduct ? listProductOrders(orgId, id, 10) : Promise.resolve([]),
+      isProduct ? getBom(orgId, id) : Promise.resolve(null),
+      isProduct ? listRawMaterialOptions(orgId) : Promise.resolve([]),
+    ]);
 
   return (
     <>
@@ -71,9 +76,12 @@ export async function ItemDetail({ kind, id }: { kind: ItemKind; id: string }) {
       <div className="space-y-8">
         <ItemSummary detail={detail} />
         {isProduct ? (
-          <Section title="Órdenes de producción">
-            <ProductOrders rows={orders} unitCode={item.unitCode} />
-          </Section>
+          <>
+            <BomPanel itemId={id} productUnit={item.unitCode} bom={bom} materials={materials} />
+            <Section title="Órdenes de producción">
+              <ProductOrders rows={orders} unitCode={item.unitCode} />
+            </Section>
+          </>
         ) : (
           <>
             <Section title="Usado en">
