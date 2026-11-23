@@ -76,25 +76,25 @@ export const MODULES: ModuleFeature[] = [
   {
     id: "compras",
     icon: ShoppingCart,
-    title: "Compras y proveedores",
+    title: "Compras",
     summary:
       "Órdenes de compra con varios materiales, recepción parcial o completa y número de remito.",
     points: [
       "El stock se actualiza al recibir la mercadería",
-      "Historial de compras y precios por proveedor",
+      "Historial de compras de cada materia prima",
       "Compras con entrega vencida a la vista",
     ],
   },
   {
     id: "costos",
     icon: Calculator,
-    title: "Costos y reportes",
+    title: "Costos",
     summary:
       "Costo estándar de cada producto y comparación entre lo planificado y lo real en cada orden.",
     points: [
       "Materiales a costo promedio, mano de obra y gastos indirectos",
-      "Producción, consumo y desperdicio por período",
-      "Exportación a CSV para tu contador o tu planilla",
+      "Costo planificado y costo real de cada orden de producción",
+      "Desvío en pesos y en porcentaje para ver dónde se fue el costo",
     ],
   },
 ];
@@ -102,7 +102,7 @@ export const MODULES: ModuleFeature[] = [
 export const STEPS = [
   {
     title: "Cargás productos y recetas",
-    body: "Tus productos, las materias primas que usan y en qué cantidad. Si ya tenés una planilla, te ayudamos a pasarla.",
+    body: "Tus productos, las materias primas que usan y en qué cantidad, con su porcentaje de desperdicio.",
   },
   {
     title: "Planificás y comprás lo que falta",
@@ -132,8 +132,8 @@ export const FAQ = [
     a: "Sí. Funciona en el navegador de cualquier computadora, tablet o celular, así se pueden registrar avances y recepciones desde la planta.",
   },
   {
-    q: "¿Puedo cargar lo que ya tengo en Excel?",
-    a: "Sí. Te acompañamos para pasar tus productos, materias primas y stock actual desde tus planillas.",
+    q: "¿Puedo probarlo sin registrarme?",
+    a: "Sí. Con el botón Probar la demo entrás a una fábrica de ejemplo, sin cuenta y de solo lectura: podés abrir todas las pantallas sin modificar nada.",
   },
   {
     q: "¿Tengo que instalar algo?",

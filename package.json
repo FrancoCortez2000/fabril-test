@@ -17,7 +17,8 @@
     "db:verify": "node --env-file=.env.local scripts/verify-cloud.mts",
     "auth:config": "node --env-file=.env.local scripts/auth-config.mts",
     "fabrica:crear": "node --env-file=.env.local scripts/fabrica-crear.mts",
-    "demo:crear": "node --env-file=.env.local scripts/demo-crear.mts"
+    "demo:crear": "node --env-file=.env.local scripts/demo-crear.mts",
+    "demo:publica": "node --env-file=.env.local scripts/demo-publica.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "7.0.5",

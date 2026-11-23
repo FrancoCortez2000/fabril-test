@@ -17,7 +17,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/features/auth/actions";
-import type { AppSession } from "@/lib/auth/types";
+import { exitDemo } from "@/features/demo/actions";
+import type { AppSession, SessionMode } from "@/lib/auth/types";
 
 function initials(name: string) {
   return name
@@ -27,7 +28,7 @@ function initials(name: string) {
     .join("");
 }
 
-export function UserMenu({ user }: { user: AppSession["user"] }) {
+export function UserMenu({ user, mode }: { user: AppSession["user"]; mode: SessionMode }) {
   const { theme, setTheme } = useTheme();
   const [pending, startTransition] = useTransition();
 
@@ -43,7 +44,9 @@ export function UserMenu({ user }: { user: AppSession["user"] }) {
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="font-normal">
           <p className="truncate text-sm font-medium">{user.name}</p>
-          <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+          {user.email ? (
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+          ) : null}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
@@ -58,9 +61,12 @@ export function UserMenu({ user }: { user: AppSession["user"] }) {
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => startTransition(() => signOut())} disabled={pending}>
+        <DropdownMenuItem
+          onSelect={() => startTransition(() => (mode === "demo" ? exitDemo() : signOut()))}
+          disabled={pending}
+        >
           <LogOut aria-hidden />
-          Cerrar sesión
+          {mode === "demo" ? "Salir de la demo" : "Cerrar sesión"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

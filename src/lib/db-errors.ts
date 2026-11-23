@@ -6,6 +6,16 @@ export class ActionError extends Error {
   }
 }
 
+/**
+ * PostgREST responde 416 (`PGRST103`) cuando el rango pedido empieza más allá del último registro
+ * (p. ej. `?page=999`): no es un fallo, es una página fuera de rango.
+ */
+export function isOutOfRange(error: unknown): boolean {
+  return (
+    typeof error === "object" && error !== null && (error as { code?: unknown }).code === "PGRST103"
+  );
+}
+
 const GENERIC = "No pudimos completar la operación. Probá de nuevo.";
 
 const BY_CODE: Record<string, string> = {

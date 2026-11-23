@@ -2,7 +2,7 @@
 
 Sistema de gestión integral para pequeñas y medianas fábricas: producción, inventario, recetas (BOM), compras, empleados, costos y reportes.
 
-> **Estado:** Etapa 3 (base de datos y autenticación). El esquema completo vive en `supabase/migrations`, con RLS, funciones de negocio transaccionales y datos demo generados por las mismas reglas. El panel exige sesión. Las pantallas de cada módulo se construyen sobre la base real en la Etapa 4. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md).
+> **Estado:** Etapa 4, bloque 4A. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`), y funcionan sobre la base real el Dashboard, Productos, Materias primas (con recetas y costo estándar), Inventario (existencias, entradas, salidas, ajustes, movimientos y reversión) y Configuración. Compras y Producción llegan en el bloque 4B. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
 
 ## Stack
 
@@ -58,6 +58,7 @@ npm run fabrica:crear -- --nombre "Plásticos Sur S.R.L." --email "dueno@plastic
 
 # Organización demo "Plásticos del Litoral S.A." para un usuario existente.
 npm run demo:crear -- --email "dueno@plasticossur.com"
+npm run demo:publica -- --email "dueno@plasticossur.com"   # marca su demo como la pública (/demo, sin cuenta, solo lectura)
 ```
 
 Dentro del panel, **Configuración → Usuarios** invita a más personas con un enlace para copiar y mandar por WhatsApp o email. La demo vive en su propia organización, con la marca DEMO; nunca se mezcla con datos reales.
@@ -66,14 +67,17 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 
 ## Rutas
 
-| Ruta                                      | Qué hay                                                                                        |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `/`                                       | Landing pública con calculadora de materiales y formulario de demostración (guarda en la base) |
-| `/ingresar`, `/recuperar`, `/restablecer` | Ingreso, recuperación y elección de contraseña (también para invitaciones)                     |
-| `/auth/confirm`                           | Destino de los enlaces de email y de invitación                                                |
-| `/app`                                    | Panel (exige sesión). Dashboard y productos siguen con datos de ejemplo hasta la Etapa 4       |
-| `/app/configuracion`                      | Usuarios de la fábrica                                                                         |
-| `/estilos`                                | Referencia interna del sistema de diseño                                                       |
+| Ruta                                      | Qué hay                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| `/`                                       | Landing pública con calculadora de materiales y el botón «Probar la demo»               |
+| `/demo`                                   | Entra a la demo pública (sin cuenta, solo lectura) y lleva a `/app`                     |
+| `/ingresar`, `/recuperar`, `/restablecer` | Ingreso, recuperación y elección de contraseña (también para invitaciones)              |
+| `/auth/confirm`                           | Destino de los enlaces de email y de invitación                                         |
+| `/app`                                    | Panel: con sesión (todo, con escritura) o con la demo pública (solo lectura)            |
+| `/app/productos`, `/app/materias-primas`  | Listas y fichas (receta, costo estándar, movimientos); en la demo no se guarda nada     |
+| `/app/inventario`                         | Existencias, entradas, salidas y ajustes; `/app/inventario/movimientos` es el historial |
+| `/app/configuracion`                      | Datos de la fábrica y usuarios (no existe en la demo)                                   |
+| `/estilos`                                | Referencia interna del sistema de diseño                                                |
 
 ## Scripts
 
@@ -96,11 +100,10 @@ src/
   features/       un módulo por carpeta: schemas, actions, queries, lógica, componentes
   lib/            supabase (clientes), auth (sesión, permisos), actions, formatos es-AR, dominio
   proxy.ts        refresco de sesión y protección de /app
-  fixtures/       datos de ejemplo del dashboard y productos (se eliminan en la Etapa 4)
 supabase/
   migrations/     esquema versionado: núcleo, catálogo, inventario, compras, producción, storage, demo
   tests/          pruebas SQL con PGlite (shim.sql imita los roles y esquemas de Supabase)
-scripts/          db, auth:config, fabrica:crear, demo:crear, db:verify
+scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify
 docs/             plan técnico y planes de implementación
 ```
 
@@ -110,5 +113,6 @@ docs/             plan técnico y planes de implementación
 - El stock sólo cambia por funciones transaccionales de la base. El libro de movimientos es inmutable, igual que el historial de órdenes y la actividad.
 - La clave secreta sólo se usa en `src/lib/supabase/admin.ts` (`server-only`) y en `scripts/`.
 - El servidor nunca toma la fábrica activa del cliente: sale de la sesión, validada contra las membresías.
+- La demo pública no tiene usuario: `anon` sólo puede **leer** la fábrica marcada como pública (`organizations.is_public_demo`) y no tiene ninguna política ni función de escritura. La cookie `fabril_demo` sólo elige qué mostrar; no es una credencial.
 
 Convenciones: código y tipos en inglés; rutas, interfaz y mensajes en español (Argentina). Formatos: fechas `DD/MM/AAAA`, moneda `$ 1.234,56`, zona horaria `America/Argentina/Buenos_Aires`.

@@ -22,10 +22,8 @@ test("cada usuario ve sólo su organización", async () => {
   expect(rows.map((r) => r.id)).toEqual([orgA]);
 });
 
-test("anon no ve organizaciones", async () => {
-  await expect(db.as("anon", (q) => q.many("select id from public.organizations"))).rejects.toThrow(
-    /permission denied/,
-  );
+test("anon no ve organizaciones (sin demo pública)", async () => {
+  expect(await db.as("anon", (q) => q.many("select id from public.organizations"))).toEqual([]);
 });
 
 test("el perfil se crea al crear el usuario", async () => {

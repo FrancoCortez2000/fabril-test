@@ -1,6 +1,7 @@
 "use client";
 
-import { MoreHorizontal, Package, PackagePlus, Pencil } from "lucide-react";
+import { Boxes, MoreHorizontal, Package, PackagePlus, Pencil } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -14,63 +15,65 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ProductFormDialog } from "@/features/products/components/product-form-dialog";
+import {
+  ITEM_LABELS,
+  ITEM_PATHS,
+  type ItemCategory,
+  type ItemKind,
+  type ItemRow,
+} from "@/features/items/types";
+import { ItemFormDialog, type ItemFormInitial } from "@/features/items/components/item-form-dialog";
+import { toFormValues } from "@/features/items/form-values";
 import { StockCell } from "@/features/products/components/stock-cell";
-import type { ProductFormValues } from "@/features/products/schemas";
-import type { ProductCategory, ProductRow } from "@/fixtures/products";
 import { STOCK_LEVEL_LABELS } from "@/lib/domain/stock";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const col = columnHelper<ProductRow>();
+const col = columnHelper<ItemRow>();
 
-function toFormValues(p: ProductRow): ProductFormValues {
-  return {
-    name: p.name,
-    sku: p.sku,
-    description: p.description,
-    categoryId: p.category?.id ?? null,
-    unitCode: p.unitCode,
-    minStock: p.minStock,
-    salePrice: p.salePrice,
-    manualCost: p.estimatedCost,
-    status: p.status,
-  };
-}
-
-function ProductThumb() {
+function ItemThumb({ kind }: { kind: ItemKind }) {
+  const Icon = kind === "raw_material" ? Boxes : Package;
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-surface-2">
-      <Package aria-hidden className="size-4 text-muted-foreground" />
+      <Icon aria-hidden className="size-4 text-muted-foreground" />
     </span>
   );
 }
 
-function StatusText({ status }: { status: ProductRow["status"] }) {
-  return (
-    <span className={cn("text-13", status === "inactive" && "text-muted-foreground")}>
-      {status === "active" ? "Activo" : "Inactivo"}
-    </span>
-  );
+function StatusText({ row }: { row: Pick<ItemRow, "status" | "archived"> }) {
+  const muted = row.archived || row.status === "inactive";
+  const label = row.archived ? "Archivado" : row.status === "active" ? "Activo" : "Inactivo";
+  return <span className={cn("text-13", muted && "text-muted-foreground")}>{label}</span>;
 }
 
+/** Lista de productos o de materias primas (misma tabla, distintos textos y columnas). */
 export function ProductsTable({
+  kind,
   rows,
   total,
   params,
   categories,
+  suppliers,
   openNew,
 }: {
-  rows: ProductRow[];
+  kind: ItemKind;
+  rows: ItemRow[];
   total: number;
   params: TableParams;
-  categories: ProductCategory[];
+  categories: ItemCategory[];
+  suppliers: { id: string; name: string }[];
   /** Abrir el formulario de alta al cargar (`?nuevo=1`, desde el menú de comandos). */
   openNew: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [dialog, setDialog] = useState<{ open: boolean; values?: ProductFormValues }>({
+  const labels = ITEM_LABELS[kind];
+  const isProduct = kind === "finished_good";
+  const [dialog, setDialog] = useState<{
+    open: boolean;
+    values?: ItemFormInitial;
+    unitLocked?: boolean;
+  }>({
     open: openNew,
   });
 
@@ -89,20 +92,27 @@ export function ProductsTable({
     }
   }
 
-  const columns: DataColumn<ProductRow>[] = [
+  function openEdit(item: ItemRow) {
+    setDialog({ open: true, values: toFormValues(item), unitLocked: item.hasMovements });
+  }
+
+  const columns: DataColumn<ItemRow>[] = [
     col.accessor("name", {
-      header: "Producto",
+      header: isProduct ? "Producto" : "Materia prima",
       meta: { sortKey: "name", className: "min-w-64" },
       cell: ({ row }) => (
-        <span className="flex items-center gap-3">
-          <ProductThumb />
+        <Link
+          href={`${ITEM_PATHS[kind]}/${row.original.id}`}
+          className="flex items-center gap-3 rounded-md hover:underline"
+        >
+          <ItemThumb kind={kind} />
           <span className="min-w-0">
             <span className="block truncate font-medium">{row.original.name}</span>
             <span className="block font-mono text-xs text-muted-foreground">
               {row.original.sku}
             </span>
           </span>
-        </span>
+        </Link>
       ),
     }),
     col.accessor((r) => r.category?.name ?? "", {
@@ -127,22 +137,34 @@ export function ProductsTable({
       meta: { align: "right", className: "hidden lg:table-cell" },
       cell: ({ row }) => formatQuantity(row.original.minStock, row.original.unitCode),
     }),
-    col.accessor("estimatedCost", {
-      header: "Costo estimado",
+    col.accessor("cost", {
+      header: labels.costLabel,
       meta: { align: "right", sortKey: "cost" },
-      cell: ({ getValue }) => formatCurrency(getValue()),
-    }),
-    col.accessor("salePrice", {
-      header: "Precio de venta",
-      meta: { align: "right", sortKey: "price", className: "hidden lg:table-cell" },
       cell: ({ getValue }) => {
         const v = getValue();
         return v === null ? <span className="text-muted-foreground">—</span> : formatCurrency(v);
       },
     }),
-    col.accessor("status", {
+  ];
+
+  if (isProduct) {
+    columns.push(
+      col.accessor("salePrice", {
+        header: "Precio de venta",
+        meta: { align: "right", sortKey: "price", className: "hidden lg:table-cell" },
+        cell: ({ getValue }) => {
+          const v = getValue();
+          return v === null ? <span className="text-muted-foreground">—</span> : formatCurrency(v);
+        },
+      }),
+    );
+  }
+
+  columns.push(
+    col.display({
+      id: "status",
       header: "Estado",
-      cell: ({ getValue }) => <StatusText status={getValue()} />,
+      cell: ({ row }) => <StatusText row={row.original} />,
     }),
     col.display({
       id: "actions",
@@ -160,9 +182,7 @@ export function ProductsTable({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onSelect={() => setDialog({ open: true, values: toFormValues(row.original) })}
-            >
+            <DropdownMenuItem onSelect={() => openEdit(row.original)}>
               <Pencil aria-hidden />
               Editar
             </DropdownMenuItem>
@@ -170,9 +190,10 @@ export function ProductsTable({
         </DropdownMenu>
       ),
     }),
-  ];
+  );
 
   const filtered = params.q !== "" || Object.keys(params.filters).length > 0;
+  const EmptyIcon = isProduct ? Package : Boxes;
 
   return (
     <>
@@ -203,65 +224,79 @@ export function ProductsTable({
             options: [
               { value: "active", label: "Activo" },
               { value: "inactive", label: "Inactivo" },
+              { value: "archived", label: "Archivado" },
             ],
           },
         ]}
         toolbarActions={
           <Button onClick={() => setDialog({ open: true })}>
             <PackagePlus aria-hidden />
-            Nuevo producto
+            {labels.newLabel}
           </Button>
         }
         mobileCard={(p) => (
           <div className="rounded-lg border bg-surface p-3">
             <div className="flex items-start gap-3">
-              <ProductThumb />
-              <div className="min-w-0 flex-1">
+              <ItemThumb kind={kind} />
+              <Link href={`${ITEM_PATHS[kind]}/${p.id}`} className="min-w-0 flex-1">
                 <p className="truncate font-medium">{p.name}</p>
                 <p className="font-mono text-xs text-muted-foreground">{p.sku}</p>
-              </div>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`Editar ${p.name}`}
-                onClick={() => setDialog({ open: true, values: toFormValues(p) })}
+                onClick={() => openEdit(p)}
               >
                 <Pencil />
               </Button>
             </div>
             <div className="mt-3 flex items-center justify-between gap-2 text-13">
               <StockCell current={p.currentStock} min={p.minStock} unitCode={p.unitCode} />
-              <StatusText status={p.status} />
+              <StatusText row={p} />
             </div>
           </div>
         )}
         emptyState={
           filtered ? (
             <EmptyState
-              icon={Package}
-              title="Ningún producto coincide con la búsqueda"
+              icon={EmptyIcon}
+              title={
+                isProduct
+                  ? "Ningún producto coincide con la búsqueda"
+                  : "Ninguna materia prima coincide con la búsqueda"
+              }
               description="Probá con otro nombre o SKU, o quitá algunos filtros."
             />
           ) : (
             <EmptyState
-              icon={Package}
-              title="Todavía no cargaste productos"
-              description="Cargá tu primer producto terminado para poder armar su receta y planificar su fabricación."
+              icon={EmptyIcon}
+              title={
+                isProduct ? "Todavía no cargaste productos" : "Todavía no cargaste materias primas"
+              }
+              description={
+                isProduct
+                  ? "Cargá tu primer producto terminado para poder armar su receta y planificar su fabricación."
+                  : "Cargá las materias primas que usás para fabricar, con su unidad y su stock mínimo."
+              }
               action={
                 <Button onClick={() => setDialog({ open: true })}>
                   <PackagePlus aria-hidden />
-                  Nuevo producto
+                  {labels.newLabel}
                 </Button>
               }
             />
           )
         }
       />
-      <ProductFormDialog
+      <ItemFormDialog
         open={dialog.open}
         onOpenChange={setOpen}
+        kind={kind}
         categories={categories}
+        suppliers={suppliers}
         initialValues={dialog.values}
+        unitLocked={dialog.unitLocked}
       />
     </>
   );

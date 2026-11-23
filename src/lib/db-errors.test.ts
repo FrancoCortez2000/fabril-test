@@ -1,4 +1,4 @@
-import { ActionError, mapDbError } from "@/lib/db-errors";
+import { ActionError, isOutOfRange, mapDbError } from "@/lib/db-errors";
 
 test("P0001 pasa el mensaje de negocio tal cual", () => {
   expect(
@@ -23,4 +23,17 @@ test("errores desconocidos nunca exponen el detalle técnico", () => {
   expect(mapDbError({ code: "42P01", message: 'relation "x" does not exist' })).toBe(generic);
   expect(mapDbError(new TypeError("fetch failed"))).toBe(generic);
   expect(mapDbError("raro")).toBe(generic);
+});
+
+describe("isOutOfRange", () => {
+  test("reconoce la página fuera de rango de PostgREST", () => {
+    expect(isOutOfRange({ code: "PGRST103", message: "offset" })).toBe(true);
+  });
+
+  test("no confunde otros errores", () => {
+    expect(isOutOfRange({ code: "42501" })).toBe(false);
+    expect(isOutOfRange(new Error("boom"))).toBe(false);
+    expect(isOutOfRange(null)).toBe(false);
+    expect(isOutOfRange(undefined)).toBe(false);
+  });
 });

@@ -4,14 +4,15 @@ import userEvent from "@testing-library/user-event";
 
 import type { TableParams } from "@/components/data-table/params";
 import { ProductsTable } from "@/features/products/components/products-table";
-import { FIXTURE_CATEGORIES, FIXTURE_PRODUCTS } from "@/fixtures/products";
+import type { ItemRow } from "@/features/items/types";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
   usePathname: () => "/app/productos",
 }));
-vi.mock("sonner", () => ({ toast: { info: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { info: vi.fn(), success: vi.fn() } }));
+vi.mock("@/features/items/actions", () => ({ saveItem: vi.fn() }));
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -21,16 +22,52 @@ beforeAll(() => {
   } as unknown as typeof ResizeObserver;
 });
 
+const CAT = { id: "00000000-0000-4000-8000-000000000101", name: "Bidones" };
 const params: TableParams = { page: 1, pageSize: 25, sort: null, q: "balde", filters: {} };
-const rows = FIXTURE_PRODUCTS.slice(0, 2);
 
-function renderTable(openNew: boolean) {
+const row = (over: Partial<ItemRow> = {}): ItemRow => ({
+  id: "00000000-0000-4000-8000-000000000001",
+  type: "finished_good",
+  sku: "BID-5L-AZ",
+  name: "Bidón 5 L azul",
+  description: "",
+  category: CAT,
+  unitCode: "u",
+  currentStock: 3420,
+  minStock: 1500,
+  avgCost: 0,
+  standardCost: 1186.4,
+  cost: 1186.4,
+  salePrice: 2850,
+  standardLaborMinutes: 15,
+  overheadPerUnit: 20,
+  preferredSupplierId: null,
+  lastPurchaseCost: null,
+  committed: 0,
+  available: 3420,
+  hasMovements: true,
+  status: "active",
+  archived: false,
+  level: "ok",
+  ...over,
+});
+
+function renderTable(openNew: boolean, kind: "finished_good" | "raw_material" = "finished_good") {
   return (
     <ProductsTable
-      rows={rows}
+      kind={kind}
+      rows={[
+        row(),
+        row({
+          id: "00000000-0000-4000-8000-000000000002",
+          sku: "BID-5L-NAT",
+          name: "Bidón 5 L natural",
+        }),
+      ]}
       total={2}
       params={params}
-      categories={FIXTURE_CATEGORIES}
+      categories={[CAT]}
+      suppliers={[]}
       openNew={openNew}
     />
   );
@@ -48,4 +85,35 @@ test("al cerrar, quita ?nuevo=1 sin perder la búsqueda ni los filtros", async (
   await screen.findByRole("dialog");
   await userEvent.keyboard("{Escape}");
   expect(replace).toHaveBeenCalledWith("/app/productos?q=balde", { scroll: false });
+});
+
+test("cada producto enlaza a su ficha", () => {
+  render(renderTable(false));
+  const links = screen.getAllByRole("link", { name: /Bidón 5 L azul/ });
+  expect(links.length).toBeGreaterThan(0);
+  for (const link of links) {
+    expect(link).toHaveAttribute("href", "/app/productos/00000000-0000-4000-8000-000000000001");
+  }
+});
+
+test("las materias primas enlazan a su ficha y usan sus propios textos", () => {
+  render(renderTable(false, "raw_material"));
+  const links = screen.getAllByRole("link", { name: /Bidón 5 L azul/ });
+  expect(links.length).toBeGreaterThan(0);
+  for (const link of links) {
+    expect(link).toHaveAttribute(
+      "href",
+      "/app/materias-primas/00000000-0000-4000-8000-000000000001",
+    );
+  }
+  expect(screen.getByRole("button", { name: /Nueva materia prima/ })).toBeVisible();
+  expect(screen.getByRole("columnheader", { name: /Costo promedio/ })).toBeVisible();
+  expect(screen.queryByRole("columnheader", { name: /Precio de venta/ })).toBeNull();
+});
+
+test("los productos muestran costo estándar y precio de venta", () => {
+  render(renderTable(false));
+  expect(screen.getByRole("columnheader", { name: /Costo estándar/ })).toBeVisible();
+  expect(screen.getByRole("columnheader", { name: /Precio de venta/ })).toBeVisible();
+  expect(screen.getByRole("button", { name: /Nuevo producto/ })).toBeVisible();
 });

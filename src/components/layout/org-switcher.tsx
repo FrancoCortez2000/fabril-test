@@ -41,10 +41,13 @@ export function OrgSwitcher({
   organizations,
   activeId,
   collapsed = false,
+  readOnly = false,
 }: {
   organizations: SessionOrganization[];
   activeId: string;
   collapsed?: boolean;
+  /** Una sola fábrica fija (demo pública): se muestra sin desplegable. */
+  readOnly?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const active = organizations.find((o) => o.id === activeId) ?? organizations[0];
@@ -56,6 +59,27 @@ export function OrgSwitcher({
       const result = await switchOrganization({ organizationId: id });
       if (!result.ok) toast.error(result.error);
     });
+  }
+
+  if (readOnly) {
+    return (
+      <div
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-md p-2",
+          collapsed && "justify-center",
+        )}
+      >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md border bg-surface text-xs font-semibold">
+          {initials(active.name)}
+        </span>
+        {collapsed ? null : (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">{active.name}</span>
+            {active.isDemo ? <DemoBadge className="mt-0.5 inline-block" /> : null}
+          </span>
+        )}
+      </div>
+    );
   }
 
   return (

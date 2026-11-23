@@ -124,9 +124,7 @@ test("el SKU es único por fábrica sin distinguir mayúsculas", async () => {
 test("cada fábrica ve sólo sus ítems y anon no ve nada", async () => {
   const skus = await db.as(userB, (q) => q.many<{ sku: string }>("select sku from public.items"));
   expect(skus.map((s) => s.sku)).toEqual(["MB-AZ"]);
-  await expect(db.as("anon", (q) => q.many("select * from public.items"))).rejects.toThrow(
-    /permission denied/,
-  );
+  expect(await db.as("anon", (q) => q.many("select id from public.items"))).toEqual([]);
 });
 
 describe("recetas", () => {

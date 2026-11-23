@@ -2,6 +2,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { AccessProvider } from "@/components/layout/access-provider";
 import { CommandMenu } from "@/components/layout/command-menu";
 
 const push = vi.fn();
@@ -30,4 +31,16 @@ test("Ctrl+K abre el menú y elegir un módulo navega", async () => {
   await userEvent.type(await screen.findByPlaceholderText(/Escribí/), "inventario");
   await userEvent.keyboard("{Enter}");
   expect(push).toHaveBeenCalledWith("/app/inventario");
+});
+
+test("en la demo el menú de comandos no ofrece Configuración", async () => {
+  render(
+    <AccessProvider role={null} mode="demo">
+      <CommandMenu />
+    </AccessProvider>,
+  );
+  await userEvent.click(screen.getByRole("button", { name: /Buscar/ }));
+  await screen.findByPlaceholderText(/Escribí/);
+  expect(screen.getByRole("option", { name: /Inventario/ })).toBeVisible();
+  expect(screen.queryByRole("option", { name: /Configuración/ })).toBeNull();
 });

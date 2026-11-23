@@ -32,6 +32,8 @@ export function createAction<S extends z.ZodType, R>(
       def,
       async () => {
         const session = await requireSession();
+        // La demo pública es de sólo lectura: ninguna acción corre en modo demo.
+        if (session.mode === "demo") throw new ActionError("No disponible en la demo");
         if (def.permission && !can(session.role, def.permission)) {
           throw new ActionError("No tenés permiso para hacer esto en esta fábrica");
         }

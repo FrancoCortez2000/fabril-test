@@ -16,6 +16,7 @@ import { FormAlert } from "@/components/feedback/form-alert";
 import { PasswordInput } from "@/features/auth/components/password-input";
 import { loginSchema, type LoginValues } from "@/features/auth/schemas";
 
+const DEMO_UNAVAILABLE = "La demo no está disponible por ahora. Probá de nuevo más tarde.";
 const LINK_ERROR =
   "El enlace venció o ya se usó. Pedí uno nuevo desde “¿Olvidaste tu contraseña?”.";
 
@@ -23,7 +24,11 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? undefined;
   const [serverError, setServerError] = useState<string | null>(
-    searchParams.get("error") === "enlace" ? LINK_ERROR : null,
+    searchParams.get("error") === "enlace"
+      ? LINK_ERROR
+      : searchParams.get("demo") === "no-disponible"
+        ? DEMO_UNAVAILABLE
+        : null,
   );
   const { control, handleSubmit, formState } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),

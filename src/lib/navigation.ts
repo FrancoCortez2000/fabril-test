@@ -1,19 +1,17 @@
 import {
-  BarChart3,
   Boxes,
-  Calculator,
   Factory,
   House,
   Package,
   Settings,
   ShoppingCart,
-  Truck,
-  Users,
   Warehouse,
   type LucideIcon,
 } from "lucide-react";
 
-export type NavGroup = "inicio" | "operacion" | "gestion" | "analisis" | "sistema";
+import type { SessionMode } from "@/lib/auth/types";
+
+export type NavGroup = "inicio" | "operacion" | "sistema";
 
 export type NavItem = {
   label: string;
@@ -26,8 +24,6 @@ export type NavItem = {
 export const NAV_GROUPS: Record<NavGroup, string | null> = {
   inicio: null,
   operacion: "Operación",
-  gestion: "Gestión",
-  analisis: "Análisis",
   sistema: "Sistema",
 };
 
@@ -38,12 +34,13 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Productos", href: "/app/productos", icon: Package, group: "operacion" },
   { label: "Materias primas", href: "/app/materias-primas", icon: Boxes, group: "operacion" },
   { label: "Compras", href: "/app/compras", icon: ShoppingCart, group: "operacion" },
-  { label: "Proveedores", href: "/app/proveedores", icon: Truck, group: "gestion" },
-  { label: "Empleados", href: "/app/empleados", icon: Users, group: "gestion" },
-  { label: "Costos", href: "/app/costos", icon: Calculator, group: "analisis" },
-  { label: "Reportes", href: "/app/reportes", icon: BarChart3, group: "analisis" },
   { label: "Configuración", href: "/app/configuracion", icon: Settings, group: "sistema" },
 ];
+
+/** Ítems del menú según el modo: en la demo no existe Configuración. */
+export function navItemsFor(mode: SessionMode): NavItem[] {
+  return mode === "demo" ? NAV_ITEMS.filter((i) => i.href !== "/app/configuracion") : NAV_ITEMS;
+}
 
 /** `/app` sólo se activa en su ruta exacta; el resto, por segmento. */
 export function isNavItemActive(pathname: string, href: string): boolean {
@@ -52,9 +49,11 @@ export function isNavItemActive(pathname: string, href: string): boolean {
 }
 
 /** Ítems agrupados en el orden de aparición. */
-export function groupedNavItems(): { group: NavGroup; title: string | null; items: NavItem[] }[] {
+export function groupedNavItems(
+  mode: SessionMode = "member",
+): { group: NavGroup; title: string | null; items: NavItem[] }[] {
   const groups: { group: NavGroup; title: string | null; items: NavItem[] }[] = [];
-  for (const item of NAV_ITEMS) {
+  for (const item of navItemsFor(mode)) {
     let entry = groups.find((g) => g.group === item.group);
     if (!entry) {
       entry = { group: item.group, title: NAV_GROUPS[item.group], items: [] };

@@ -25,9 +25,13 @@ export function SiteFooter() {
           </ul>
           <ul className="space-y-2">
             <li>
-              <a href="#demo" className="text-muted-foreground hover:text-foreground">
-                Solicitar demostración
-              </a>
+              <Link
+                href="/demo"
+                prefetch={false}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Probar la demo
+              </Link>
             </li>
             <li>
               <Link href="/ingresar" className="text-muted-foreground hover:text-foreground">

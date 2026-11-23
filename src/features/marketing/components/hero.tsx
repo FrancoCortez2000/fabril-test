@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { BomCalculator } from "@/features/marketing/components/bom-calculator";
 
@@ -16,7 +18,9 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" asChild>
-              <a href="#demo">Solicitar demostración</a>
+              <Link href="/demo" prefetch={false}>
+                Probar la demo
+              </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a href="#como-funciona">Ver cómo funciona</a>

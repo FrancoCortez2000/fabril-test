@@ -14,9 +14,13 @@ export default function IngresarPage() {
       description="Entrá al panel de tu fábrica."
       footer={
         <>
-          ¿No tenés cuenta?{" "}
-          <Link href="/#demo" className="font-medium text-foreground underline underline-offset-4">
-            Solicitá una demostración
+          ¿Querés verlo antes?{" "}
+          <Link
+            href="/demo"
+            prefetch={false}
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            Probar la demo
           </Link>
         </>
       }

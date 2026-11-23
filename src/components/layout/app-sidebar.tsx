@@ -58,6 +58,7 @@ export function AppSidebar({ session }: { session: AppSession }) {
           organizations={session.organizations}
           activeId={session.activeOrganizationId}
           collapsed={collapsed}
+          readOnly={session.mode === "demo"}
         />
         <Button
           variant="ghost"
