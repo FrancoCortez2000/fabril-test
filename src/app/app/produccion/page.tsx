@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { PageHeader } from "@/components/data/page-header";
+import { OrdersList, OrdersListSkeleton } from "@/features/production/components/orders-list";
 
 export const metadata: Metadata = { title: "Producción" };
 
-export default function ProduccionPage() {
+export default function ProduccionPage(props: PageProps<"/app/produccion">) {
   return (
-    <ModulePlaceholder
-      title="Producción"
-      description="Órdenes de producción, avance, materiales y personal asignado."
-    />
+    <>
+      <PageHeader
+        title="Producción"
+        description="Órdenes de producción: avance, materiales, personal y costo planificado contra el real."
+      />
+      <Suspense fallback={<OrdersListSkeleton />}>
+        <OrdersList searchParams={props.searchParams} />
+      </Suspense>
+    </>
   );
 }
