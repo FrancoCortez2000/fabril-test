@@ -43,6 +43,7 @@ export function MobileNav({ session }: { session: AppSession }) {
           <OrgSwitcher
             organizations={session.organizations}
             activeId={session.activeOrganizationId}
+            readOnly={session.mode === "demo"}
           />
         </div>
       </SheetContent>

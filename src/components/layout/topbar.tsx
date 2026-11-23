@@ -17,7 +17,7 @@ export function Topbar({ session }: { session: AppSession }) {
       </div>
       <div className="flex items-center gap-1">
         <NotificationsMenu />
-        <UserMenu user={session.user} />
+        <UserMenu user={session.user} mode={session.mode} />
       </div>
     </header>
   );

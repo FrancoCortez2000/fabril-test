@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useAccess } from "@/components/layout/access-provider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { groupedNavItems, isNavItemActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
-
-const GROUPS = groupedNavItems();
 
 /** Lista de navegación compartida por la barra lateral y el menú móvil. */
 export function NavList({
@@ -18,6 +17,8 @@ export function NavList({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const { mode } = useAccess();
+  const GROUPS = groupedNavItems(mode);
 
   return (
     <nav aria-label="Módulos" className="flex flex-col gap-5">

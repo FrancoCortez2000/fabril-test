@@ -46,3 +46,9 @@ test("elegir la fábrica activa no hace nada", async () => {
   await userEvent.click(await screen.findByRole("menuitem", { name: /Mi Fábrica/ }));
   expect(switchOrganization).not.toHaveBeenCalled();
 });
+
+test("en modo sólo lectura muestra la fábrica sin desplegable", () => {
+  render(<OrgSwitcher organizations={[orgs[1]!]} activeId={orgs[1]!.id} readOnly />);
+  expect(screen.getByText("Plásticos del Litoral S.A.")).toBeVisible();
+  expect(screen.queryByRole("button")).toBeNull();
+});

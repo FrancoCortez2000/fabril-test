@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+import { useAccess } from "@/components/layout/access-provider";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -16,13 +18,14 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { NAV_ITEMS } from "@/lib/navigation";
+import { navItemsFor } from "@/lib/navigation";
 
 /**
  * Menú de comandos (Ctrl/⌘ + K): navegar entre módulos y acciones rápidas.
  * La búsqueda de registros (productos, órdenes, proveedores…) se agrega en la Etapa 4.
  */
 export function CommandMenu() {
+  const { mode } = useAccess();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { setTheme } = useTheme();
@@ -74,7 +77,7 @@ export function CommandMenu() {
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Ir a">
-              {NAV_ITEMS.map((item) => (
+              {navItemsFor(mode).map((item) => (
                 <CommandItem key={item.href} onSelect={() => run(() => router.push(item.href))}>
                   <item.icon aria-hidden />
                   {item.label}
