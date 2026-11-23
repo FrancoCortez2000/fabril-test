@@ -100,3 +100,8 @@ test("anon lee la demo pública y nada más", async () => {
   expect(rows.every((r) => r.organization_id === org)).toBe(true);
   expect(orgB).toBeTruthy();
 });
+
+test("stock_value es el stock por el costo promedio (para ordenar por valor)", async () => {
+  expect(Number((await row(admin, pead)).stock_value)).toBe(300 * 1000);
+  expect(Number((await row(admin, product)).stock_value)).toBe(0);
+});

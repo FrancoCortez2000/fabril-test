@@ -1655,6 +1655,7 @@ export type Database = {
           standard_cost: number | null;
           standard_labor_minutes: number;
           status: string;
+          stock_value: number | null;
           type: string;
           unit_code: string;
           unit_id: number;
