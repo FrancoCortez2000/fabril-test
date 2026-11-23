@@ -86,16 +86,22 @@ async function checks() {
   const [a, b] = tenants as [Tenant, Tenant];
   const ca = a.client!;
 
-  const orgs = await ca.from("organizations").select("id");
+  // Cada fábrica ve la suya y, además, la demo pública (que es de lectura para todos).
+  const orgs = await ca.from("organizations").select("id, is_public_demo");
   record(
-    "A ve sólo su fábrica",
-    !orgs.error && orgs.data?.length === 1 && orgs.data[0]?.id === a.orgId,
+    "A ve sólo su fábrica (y la demo pública)",
+    !orgs.error &&
+      (orgs.data ?? []).some((o) => o.id === a.orgId) &&
+      (orgs.data ?? []).every((o) => o.id === a.orgId || o.is_public_demo === true),
   );
+  const visibleOrgIds = (orgs.data ?? []).map((o) => o.id);
 
   const items = await ca.from("items").select("id, organization_id");
   record(
     "A no ve ítems de B",
-    !items.error && (items.data ?? []).every((i) => i.organization_id === a.orgId),
+    !items.error &&
+      (items.data ?? []).every((i) => visibleOrgIds.includes(i.organization_id)) &&
+      !(items.data ?? []).some((i) => i.organization_id === b.orgId),
   );
 
   const movs = await ca.from("stock_movements").select("id").eq("organization_id", b.orgId!);
@@ -137,8 +143,36 @@ async function checks() {
   record("Nadie inserta movimientos directo en el libro", Boolean(stock.error), stock.error?.code);
 
   const anon = publicClient();
-  const anonOrgs = await anon.from("organizations").select("id");
-  record("Anónimo no lee fábricas", Boolean(anonOrgs.error) || anonOrgs.data?.length === 0);
+  // La demo pública es lo único que `anon` puede leer (y nunca escribir).
+  const anonOrgs = await anon.from("organizations").select("id, is_public_demo");
+  record(
+    "Anónimo sólo lee la demo pública",
+    !anonOrgs.error &&
+      (anonOrgs.data ?? []).every((o) => o.is_public_demo === true) &&
+      !(anonOrgs.data ?? []).some((o) => o.id === a.orgId || o.id === b.orgId),
+  );
+  const publicDemoIds = (anonOrgs.data ?? []).map((o) => o.id);
+  const anonItems = await anon.from("items").select("organization_id");
+  record(
+    "Anónimo no lee ítems de fábricas reales",
+    !anonItems.error &&
+      (anonItems.data ?? []).every((i) => publicDemoIds.includes(i.organization_id)),
+  );
+  const anonInsert = await anon.from("items").insert({
+    organization_id: publicDemoIds[0] ?? a.orgId,
+    type: "raw_material",
+    sku: `ANON-${stamp}`,
+    name: "Intruso anónimo",
+    unit_id: 1,
+  });
+  record("Anónimo no puede escribir en la demo", Boolean(anonInsert.error), anonInsert.error?.code);
+  const anonMove = await anon.rpc("create_manual_movement", {
+    p_item: a.itemId,
+    p_type: "manual_in",
+    p_quantity: 1,
+    p_reason: "Intento anónimo",
+  });
+  record("Anónimo no ejecuta RPC de escritura", Boolean(anonMove.error), anonMove.error?.code);
   const anonLead = await anon.rpc("submit_demo_request", {
     p_name: "x",
     p_company: "x",

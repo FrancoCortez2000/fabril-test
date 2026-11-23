@@ -58,6 +58,7 @@ npm run fabrica:crear -- --nombre "Plásticos Sur S.R.L." --email "dueno@plastic
 
 # Organización demo "Plásticos del Litoral S.A." para un usuario existente.
 npm run demo:crear -- --email "dueno@plasticossur.com"
+npm run demo:publica -- --email "dueno@plasticossur.com"   # marca su demo como la pública (/demo, sin cuenta, solo lectura)
 ```
 
 Dentro del panel, **Configuración → Usuarios** invita a más personas con un enlace para copiar y mandar por WhatsApp o email. La demo vive en su propia organización, con la marca DEMO; nunca se mezcla con datos reales.
@@ -100,7 +101,7 @@ src/
 supabase/
   migrations/     esquema versionado: núcleo, catálogo, inventario, compras, producción, storage, demo
   tests/          pruebas SQL con PGlite (shim.sql imita los roles y esquemas de Supabase)
-scripts/          db, auth:config, fabrica:crear, demo:crear, db:verify
+scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify
 docs/             plan técnico y planes de implementación
 ```
 

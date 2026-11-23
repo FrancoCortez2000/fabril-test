@@ -577,6 +577,7 @@ export type Database = {
           email: string | null;
           id: string;
           is_demo: boolean;
+          is_public_demo: boolean;
           legal_name: string | null;
           logo_path: string | null;
           name: string;
@@ -597,6 +598,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           is_demo?: boolean;
+          is_public_demo?: boolean;
           legal_name?: string | null;
           logo_path?: string | null;
           name: string;
@@ -616,6 +618,7 @@ export type Database = {
           email?: string | null;
           id?: string;
           is_demo?: boolean;
+          is_public_demo?: boolean;
           legal_name?: string | null;
           logo_path?: string | null;
           name?: string;
@@ -1595,6 +1598,7 @@ export type Database = {
           user_id: string;
         }[];
       };
+      admin_set_public_demo: { Args: { p_org: string }; Returns: undefined };
       cancel_production_order: {
         Args: { p_id: string; p_reason: string; p_returns: Json };
         Returns: {
