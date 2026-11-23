@@ -281,6 +281,21 @@ describe("con la demo pública", () => {
     expect((await activity("anon", demo)).length).toBe(8);
   });
 
+  test("la demo pública no muestra quién hizo cada cosa: todo sale como Equipo", async () => {
+    const asAnon = await activity("anon", demo, 50);
+    expect(asAnon.length).toBeGreaterThan(8);
+    expect(asAnon.every((r) => r.actor_name === "Equipo")).toBe(true);
+    // Un usuario logueado que no es de esa fábrica tampoco ve nombres.
+    const asStranger = await activity(stranger, demo, 50);
+    expect(asStranger.every((r) => r.actor_name === "Equipo")).toBe(true);
+  });
+
+  test("un miembro de la fábrica sigue viendo los nombres reales", async () => {
+    const rows = await activity(owner, demo, 50);
+    expect(rows.find((r) => r.summary === "Prueba 2")?.actor_name).toBe("Ana");
+    expect(rows.find((r) => r.summary === "Prueba 1")?.actor_name).toBe("Sistema");
+  });
+
   test("anon no recibe nada de otra fábrica", async () => {
     const d = await dash("anon", empty);
     expect(d.kpis.products).toBe(0);

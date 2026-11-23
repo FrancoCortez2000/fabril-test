@@ -81,6 +81,27 @@ describe("con demoA pública", () => {
     expect(units.length).toBeGreaterThan(0);
   });
 
+  test("anon no puede leer quién creó cada registro ni el autor de la actividad", async () => {
+    await expect(
+      db.as("anon", (q) => q.many("select created_by from public.items")),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      db.as("anon", (q) => q.many("select actor_id from public.activity_log")),
+    ).rejects.toThrow(/permission denied/);
+    // El resto de las columnas sigue legible.
+    expect(
+      (await db.as("anon", (q) => q.many("select id, sku, name, current_stock from public.items")))
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      (
+        await db.as("anon", (q) =>
+          q.many("select id, summary, occurred_at from public.activity_log"),
+        )
+      ).length,
+    ).toBeGreaterThanOrEqual(0);
+  });
+
   test("anon no lee memberships, profiles, document_sequences ni demo_requests", async () => {
     for (const t of ["memberships", "profiles", "document_sequences", "demo_requests"]) {
       await expect(db.as("anon", (q) => q.many(`select * from public.${t}`))).rejects.toThrow(

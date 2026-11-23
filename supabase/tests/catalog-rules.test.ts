@@ -278,7 +278,9 @@ describe("item_costing sin receta", () => {
     expect(row.standard_cost).toBeNull();
     expect(row.materials_cost).toBeNull();
     const catalog = await db.as(admin, (q) =>
-      q.one<{ cost: string | null }>("select cost::text from public.item_catalog where id = $1", [bare]),
+      q.one<{ cost: string | null }>("select cost::text from public.item_catalog where id = $1", [
+        bare,
+      ]),
     );
     expect(catalog.cost).toBeNull();
   });
