@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { adjustmentSchema, movementSchema } from "@/features/inventory/schemas";
+import { adjustmentSchema, movementSchema, reverseSchema } from "@/features/inventory/schemas";
 import { allowsDecimals } from "@/features/products/schemas";
 import { createAction, type ActionContext } from "@/lib/actions";
 import { ActionError } from "@/lib/db-errors";
@@ -64,6 +64,33 @@ export const registerAdjustment = createAction({
     const { data, error } = await ctx.supabase.rpc("create_stock_adjustment", {
       p_item: itemId,
       p_counted_qty: countedQty,
+      p_reason: reason,
+    });
+    if (error) throw error;
+    revalidateInventory();
+    return { id: data.id };
+  },
+});
+
+/**
+ * Revierte un movimiento manual o un ajuste (los demás se corrigen desde su compra u orden). La RPC
+ * `reverse_stock_movement` valida el permiso, el motivo y que no esté ya revertido.
+ */
+export const reverseMovement = createAction({
+  schema: reverseSchema,
+  permission: "manageInventory",
+  handler: async ({ movementId, reason }, { supabase, orgId }) => {
+    const { data: found, error: findError } = await supabase
+      .from("movement_feed")
+      .select("id")
+      .eq("id", movementId)
+      .eq("organization_id", orgId)
+      .maybeSingle();
+    if (findError) throw findError;
+    if (!found) throw new ActionError("No encontramos ese movimiento en esta fábrica");
+
+    const { data, error } = await supabase.rpc("reverse_stock_movement", {
+      p_movement: movementId,
       p_reason: reason,
     });
     if (error) throw error;

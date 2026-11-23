@@ -6,12 +6,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { signedQuantity } from "@/features/inventory/format";
 import { MOVEMENT_TYPE_LABELS, type MovementRow } from "@/features/inventory/types";
 import { formatCurrency, formatDateTime, formatQuantity } from "@/lib/format";
-
-function signed(quantity: number, unitCode: string): string {
-  return `${quantity > 0 ? "+" : ""}${formatQuantity(quantity, unitCode)}`;
-}
 
 /** Kardex del ítem: cada movimiento con su saldo, de más nuevo a más viejo. */
 export function ItemMovements({ rows }: { rows: MovementRow[] }) {
@@ -35,7 +32,9 @@ export function ItemMovements({ rows }: { rows: MovementRow[] }) {
           <TableRow key={m.id}>
             <TableCell className="whitespace-nowrap">{formatDateTime(m.occurredAt)}</TableCell>
             <TableCell>{MOVEMENT_TYPE_LABELS[m.type] ?? m.type}</TableCell>
-            <TableCell className="tabular text-right">{signed(m.quantity, m.unitCode)}</TableCell>
+            <TableCell className="tabular text-right">
+              {signedQuantity(m.quantity, m.unitCode)}
+            </TableCell>
             <TableCell className="tabular hidden text-right md:table-cell">
               {m.unitCost === null ? "—" : formatCurrency(m.unitCost)}
             </TableCell>

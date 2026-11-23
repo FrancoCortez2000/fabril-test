@@ -5,6 +5,7 @@ import { z } from "zod";
 import { marginPct } from "@/features/items/calc";
 import { toItemRow, type CatalogRow } from "@/features/items/queries";
 import type { ItemRow } from "@/features/items/types";
+import { toMovementRow } from "@/features/inventory/movement-row";
 import type { MovementRow } from "@/features/inventory/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -73,44 +74,6 @@ export async function listItemMovements(
     .limit(limit);
   if (error) throw error;
   return (data ?? []).map(toMovementRow);
-}
-
-type FeedRow = {
-  id: string;
-  item_id: string;
-  item_name: string;
-  item_sku: string;
-  unit_code: string;
-  movement_type: string;
-  quantity: number;
-  unit_cost: number | null;
-  total_cost: number | null;
-  balance_after: number | null;
-  reason: string | null;
-  occurred_at: string;
-  reference: string | null;
-  reversible: boolean | null;
-  reversed: boolean | null;
-};
-
-export function toMovementRow(r: FeedRow): MovementRow {
-  return {
-    id: r.id,
-    occurredAt: r.occurred_at,
-    itemId: r.item_id,
-    itemName: r.item_name,
-    sku: r.item_sku,
-    unitCode: r.unit_code,
-    type: r.movement_type,
-    quantity: Number(r.quantity),
-    unitCost: r.unit_cost === null ? null : Number(r.unit_cost),
-    totalCost: r.total_cost === null ? null : Number(r.total_cost),
-    balanceAfter: r.balance_after === null ? null : Number(r.balance_after),
-    reason: r.reason,
-    reference: r.reference,
-    reversible: Boolean(r.reversible),
-    reversed: Boolean(r.reversed),
-  };
 }
 
 export type UsedInRow = {

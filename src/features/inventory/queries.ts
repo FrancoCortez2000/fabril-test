@@ -2,7 +2,9 @@ import "server-only";
 
 import { z } from "zod";
 
-import type { TableParams } from "@/components/data-table/params";
+import { clampPage, type TableParams } from "@/components/data-table/params";
+import { toMovementRow, type FeedRow } from "@/features/inventory/movement-row";
+import { MOVEMENT_TYPE_LABELS, type MovementRow } from "@/features/inventory/types";
 import { sanitizeSearch } from "@/features/items/search";
 import type { ItemCategory, ItemKind } from "@/features/items/types";
 import type { StockLevel } from "@/lib/domain/stock";
@@ -151,4 +153,93 @@ export async function listAllCategories(orgId: string): Promise<ItemCategory[]> 
     .order("name");
   if (error) throw error;
   return (data ?? []).map((c) => ({ id: c.id, name: c.name }));
+}
+
+/** Opciones de la tabla de movimientos (las claves viajan por la URL). */
+export const MOVEMENT_TABLE_OPTIONS = {
+  sortable: ["occurredAt", "quantity"],
+  filterable: ["tipo", "item", "desde", "hasta"],
+  defaultSort: { id: "occurredAt", desc: true },
+};
+
+const MOVEMENT_SORT: Record<string, string> = { occurredAt: "occurred_at", quantity: "quantity" };
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function validDate(value: string | undefined): string | null {
+  if (!value || !DATE_ONLY.test(value)) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : value;
+}
+
+/** Fechas `desde` y `hasta` (YYYY-MM-DD) de la URL: las inválidas se ignoran, y si están al revés, ambas. */
+export function dateRange(filters: Record<string, string[]>): {
+  from: string | null;
+  to: string | null;
+} {
+  const from = validDate(filters.desde?.[0]);
+  const to = validDate(filters.hasta?.[0]);
+  return from && to && from > to ? { from: null, to: null } : { from, to };
+}
+
+/**
+ * Historial de movimientos de la fábrica activa, con búsqueda, filtros, orden y paginación en la
+ * consulta. Las fechas se interpretan en hora argentina (UTC-3).
+ */
+export async function listMovements(
+  orgId: string,
+  params: TableParams,
+): Promise<{ rows: MovementRow[]; total: number }> {
+  const supabase = await createClient();
+  const types = (params.filters.tipo ?? []).filter((v) => v in MOVEMENT_TYPE_LABELS);
+  const items = (params.filters.item ?? []).filter((v) => uuid.safeParse(v).success);
+  const { from, to } = dateRange(params.filters);
+  const q = sanitizeSearch(params.q);
+  const column = MOVEMENT_SORT[params.sort?.id ?? ""] ?? "occurred_at";
+
+  async function fetchPage(page: number) {
+    let query = supabase
+      .from("movement_feed")
+      .select("*", { count: "exact" })
+      .eq("organization_id", orgId);
+    if (q) {
+      query = query.or(
+        ["item_name", "item_sku", "reason", "reference"].map((c) => `${c}.ilike.%${q}%`).join(","),
+      );
+    }
+    if (types.length) query = query.in("movement_type", types);
+    if (items.length) query = query.in("item_id", items);
+    if (from) query = query.gte("occurred_at", `${from}T00:00:00-03:00`);
+    if (to) query = query.lte("occurred_at", `${to}T23:59:59.999-03:00`);
+    const result = await query
+      .order(column, { ascending: !(params.sort?.desc ?? false), nullsFirst: false })
+      .order("id", { ascending: !(params.sort?.desc ?? false) })
+      .range((page - 1) * params.pageSize, page * params.pageSize - 1);
+    if (result.error) throw result.error;
+    return { rows: (result.data ?? []) as unknown as FeedRow[], total: result.count ?? 0 };
+  }
+
+  let result = await fetchPage(params.page);
+  if (result.rows.length === 0 && result.total > 0) {
+    result = await fetchPage(clampPage(params.page, result.total, params.pageSize));
+  }
+  return { rows: result.rows.map(toMovementRow), total: result.total };
+}
+
+/** Ítems de la fábrica para el filtro de movimientos. */
+export async function listItemOptions(
+  orgId: string,
+): Promise<{ id: string; name: string; sku: string; type: ItemKind }[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("item_catalog")
+    .select("id, name, sku, type")
+    .eq("organization_id", orgId)
+    .order("name");
+  if (error) throw error;
+  return (data ?? []).map((i) => ({
+    id: i.id as string,
+    name: i.name as string,
+    sku: i.sku as string,
+    type: i.type as ItemKind,
+  }));
 }

@@ -37,3 +37,11 @@ export const adjustmentSchema = z.object({
 });
 
 export type AdjustmentFormValues = z.infer<typeof adjustmentSchema>;
+
+/** Reversión de un movimiento manual o de un ajuste: el motivo es obligatorio. */
+export const reverseSchema = z.object({
+  movementId: z.uuid(),
+  reason: reason("Indicá el motivo de la reversión"),
+});
+
+export type ReverseFormValues = z.infer<typeof reverseSchema>;

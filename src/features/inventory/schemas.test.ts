@@ -1,4 +1,4 @@
-import { adjustmentSchema, movementSchema } from "@/features/inventory/schemas";
+import { adjustmentSchema, movementSchema, reverseSchema } from "@/features/inventory/schemas";
 
 const ITEM = "11111111-1111-4111-8111-111111111111";
 
@@ -67,5 +67,28 @@ describe("adjustmentSchema", () => {
     ["ítem inválido", { itemId: "x" }],
   ])("rechaza %s", (_name, override) => {
     expect(adjustmentSchema.safeParse({ ...base, ...override }).success).toBe(false);
+  });
+});
+
+describe("reverseSchema", () => {
+  const base = { movementId: "11111111-1111-4111-8111-111111111111", reason: "Error de carga" };
+
+  test("acepta un movimiento y un motivo", () => {
+    expect(reverseSchema.safeParse(base).success).toBe(true);
+  });
+
+  test.each([
+    ["motivo vacío", { reason: "" }],
+    ["motivo de solo espacios", { reason: "   " }],
+    ["motivo corto", { reason: "ab" }],
+    ["movimiento que no es un id", { movementId: "x" }],
+  ])("rechaza %s", (_name, override) => {
+    expect(reverseSchema.safeParse({ ...base, ...override }).success).toBe(false);
+  });
+
+  test("el motivo vacío explica qué falta", () => {
+    expect(issues(reverseSchema as never, { ...base, reason: "" })).toContain(
+      "Indicá el motivo de la reversión",
+    );
   });
 });
