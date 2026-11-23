@@ -1865,6 +1865,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      dashboard_data: { Args: { p_org: string }; Returns: Json };
       receive_purchase_order: {
         Args: { p_delivery_note: string; p_id: string; p_lines: Json; p_received_at: string };
         Returns: {
@@ -1883,6 +1884,17 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      recent_activity: {
+        Args: { p_limit?: number; p_org: string };
+        Returns: {
+          actor_name: string;
+          entity_id: string;
+          entity_type: string;
+          id: string;
+          occurred_at: string;
+          summary: string;
+        }[];
       };
       report_production_progress: {
         Args: {
