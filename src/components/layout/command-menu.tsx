@@ -1,6 +1,17 @@
 "use client";
 
-import { Monitor, Moon, PackagePlus, Search, Sun } from "lucide-react";
+import {
+  Boxes,
+  ClipboardList,
+  Monitor,
+  Moon,
+  Package,
+  PackagePlus,
+  Search,
+  ShoppingCart,
+  Sun,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -18,17 +29,55 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import type { SearchHit } from "@/features/search/queries";
 import { navItemsFor } from "@/lib/navigation";
+
+const GROUPS: { kind: SearchHit["kind"]; heading: string; icon: LucideIcon }[] = [
+  { kind: "product", heading: "Productos", icon: Package },
+  { kind: "raw_material", heading: "Materias primas", icon: Boxes },
+  { kind: "order", heading: "Órdenes", icon: ClipboardList },
+  { kind: "purchase", heading: "Compras", icon: ShoppingCart },
+];
+const MIN_TERM = 2;
 
 /**
  * Menú de comandos (Ctrl/⌘ + K): navegar entre módulos y acciones rápidas.
- * La búsqueda de registros (productos, órdenes, proveedores…) se agrega en la Etapa 4.
+ * Con 2 o más letras también busca productos, materias primas, órdenes y compras.
  */
 export function CommandMenu() {
   const { mode } = useAccess();
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const { setTheme } = useTheme();
+  const [term, setTerm] = useState("");
+  const [hits, setHits] = useState<SearchHit[]>([]);
+
+  // Búsqueda de registros con espera corta y descarte de respuestas viejas.
+  useEffect(() => {
+    const q = term.trim();
+    if (q.length < MIN_TERM) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sin término no hay resultados
+      setHits([]);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/app/buscar?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const body = (await res.json()) as { hits?: SearchHit[] };
+        if (!controller.signal.aborted) setHits(body.hits ?? []);
+      } catch {
+        /* sin red o cancelada: el menú sigue con módulos y acciones */
+      }
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [term]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -66,9 +115,33 @@ export function CommandMenu() {
         description="Ir a un módulo o ejecutar una acción"
       >
         <Command>
-          <CommandInput placeholder="Escribí un módulo o una acción…" />
+          <CommandInput
+            placeholder="Escribí un módulo o una acción…"
+            value={term}
+            onValueChange={setTerm}
+          />
           <CommandList>
             <CommandEmpty>No hay coincidencias.</CommandEmpty>
+            {GROUPS.map(({ kind, heading, icon: Icon }) => {
+              const group = hits.filter((h) => h.kind === kind);
+              if (group.length === 0) return null;
+              return (
+                <CommandGroup key={kind} heading={heading} forceMount>
+                  {group.map((h) => (
+                    <CommandItem
+                      key={`${kind}-${h.id}`}
+                      value={`${kind}-${h.id}`}
+                      forceMount
+                      onSelect={() => run(() => router.push(h.href))}
+                    >
+                      <Icon aria-hidden />
+                      <span className="flex-1 truncate">{h.title}</span>
+                      <span className="text-xs text-muted-foreground">{h.detail}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              );
+            })}
             <CommandGroup heading="Acciones">
               <CommandItem onSelect={() => run(() => router.push("/app/productos?nuevo=1"))}>
                 <PackagePlus aria-hidden />
