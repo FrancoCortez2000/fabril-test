@@ -41,7 +41,13 @@ vi.mock("@/lib/supabase/server", () => {
   return { createClient: async () => ({ from: (t: string) => builder(t) }) };
 });
 
-import { getOrder, listOrders, ORDER_TABLE_OPTIONS } from "@/features/production/queries";
+import {
+  getOrder,
+  listEmployees,
+  listOrders,
+  listProducibleItems,
+  ORDER_TABLE_OPTIONS,
+} from "@/features/production/queries";
 
 const ORG = "99999999-9999-4999-8999-999999999999";
 const OP = "11111111-1111-4111-8111-111111111111";
@@ -324,5 +330,48 @@ describe("getOrder", () => {
   test("si la base falla, lanza el error", async () => {
     db.tables.production_order_overview = { data: null, error: { message: "boom" } };
     await expect(getOrder(ORG, OP)).rejects.toMatchObject({ message: "boom" });
+  });
+});
+
+describe("listEmployees", () => {
+  test("empleados activos de la fábrica, por apellido", async () => {
+    db.tables.employees = {
+      data: [{ id: "e1", first_name: "Juan", last_name: "Sosa", position: "Operario" }],
+    };
+    expect(await listEmployees(ORG)).toEqual([
+      { id: "e1", name: "Juan Sosa", position: "Operario" },
+    ]);
+    expect(called("employees.eq")).toEqual(
+      expect.arrayContaining([
+        ["employees.eq", "organization_id", ORG],
+        ["employees.eq", "status", "active"],
+      ]),
+    );
+    expect(called("employees.order")[0]?.[1]).toBe("last_name");
+  });
+
+  test("si la base falla, lanza el error", async () => {
+    db.tables.employees = { data: null, error: { message: "boom" } };
+    await expect(listEmployees(ORG)).rejects.toMatchObject({ message: "boom" });
+  });
+});
+
+describe("listProducibleItems", () => {
+  test("productos activos y no archivados de la fábrica, por nombre", async () => {
+    db.tables.item_catalog = {
+      data: [{ id: "p1", name: "Balde 10 L", sku: "BAL-10L", unit_code: "u" }],
+    };
+    expect(await listProducibleItems(ORG)).toEqual([
+      { id: "p1", name: "Balde 10 L", sku: "BAL-10L", unitCode: "u" },
+    ]);
+    expect(called("item_catalog.eq")).toEqual(
+      expect.arrayContaining([
+        ["item_catalog.eq", "organization_id", ORG],
+        ["item_catalog.eq", "type", "finished_good"],
+        ["item_catalog.eq", "status", "active"],
+      ]),
+    );
+    expect(called("item_catalog.is")).toContainEqual(["item_catalog.is", "archived_at", null]);
+    expect(called("item_catalog.order")[0]?.[1]).toBe("name");
   });
 });

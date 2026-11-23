@@ -19,7 +19,7 @@ export function QuickActions() {
         </Link>
       </Button>
       <Button asChild>
-        <Link href="/app/produccion">
+        <Link href="/app/produccion/nueva">
           <ClipboardPlus aria-hidden />
           Nueva orden de producción
         </Link>

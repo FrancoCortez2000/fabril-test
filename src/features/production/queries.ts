@@ -234,3 +234,45 @@ export async function getOrder(orgId: string, id: string): Promise<OrderDetailDa
     })),
   };
 }
+
+export type EmployeeOption = { id: string; name: string; position: string | null };
+
+/** Empleados activos de la fábrica, para elegir al responsable de una orden. */
+export async function listEmployees(orgId: string): Promise<EmployeeOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("employees")
+    .select("id, first_name, last_name, position")
+    .eq("organization_id", orgId)
+    .eq("status", "active")
+    .order("last_name")
+    .order("first_name");
+  if (error) throw error;
+  return (data ?? []).map((e) => ({
+    id: e.id as string,
+    name: `${e.first_name} ${e.last_name}`,
+    position: (e.position as string | null) ?? null,
+  }));
+}
+
+export type ProducibleItem = { id: string; name: string; sku: string; unitCode: string };
+
+/** Productos activos de la fábrica (los que se pueden planificar). */
+export async function listProducibleItems(orgId: string): Promise<ProducibleItem[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("item_catalog")
+    .select("id, name, sku, unit_code")
+    .eq("organization_id", orgId)
+    .eq("type", "finished_good")
+    .eq("status", "active")
+    .is("archived_at", null)
+    .order("name");
+  if (error) throw error;
+  return (data ?? []).map((i) => ({
+    id: i.id as string,
+    name: i.name as string,
+    sku: i.sku as string,
+    unitCode: i.unit_code as string,
+  }));
+}
