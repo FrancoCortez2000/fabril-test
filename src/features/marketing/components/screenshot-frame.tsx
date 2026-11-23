@@ -18,8 +18,8 @@ export function ScreenshotFrame({ label, src }: { label: string; src?: string })
         <img
           src={src}
           alt={label}
-          width={1440}
-          height={900}
+          width={1192}
+          height={745}
           loading="lazy"
           className="block h-auto w-full"
         />

@@ -28,7 +28,12 @@ export function ModulesShowcase() {
             return (
               <article
                 key={m.id}
-                className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14"
+                className={cn(
+                  "grid items-center gap-8 lg:gap-10",
+                  i % 2 === 1
+                    ? "lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
+                    : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]",
+                )}
                 aria-labelledby={`modulo-${m.id}`}
               >
                 <div className={cn("max-w-lg", i % 2 === 1 && "lg:order-2")}>

@@ -2,7 +2,7 @@
  * Genera las capturas de la landing a partir de la demo pública.
  *   npm run build && npx next start -p 3100     (en otra terminal)
  *   npm run capturas                            (PORT=3100 por defecto)
- * Abre /demo con Chromium (1440×900, es-AR, tema claro) y guarda en public/capturas/.
+ * Abre /demo con Chromium (1440×900, sin la barra lateral, es-AR, tema claro) y guarda en public/capturas/.
  */
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -13,6 +13,9 @@ const port = process.env.PORT ?? "3100";
 const base = `http://localhost:${port}`;
 const out = join(process.cwd(), "public", "capturas");
 mkdirSync(out, { recursive: true });
+
+// Sólo el contenido (sin la barra lateral de 248 px): se lee mejor al achicarlo en la landing.
+const CLIP = { x: 248, y: 0, width: 1192, height: 745 };
 
 const browser = await chromium.launch();
 const context = await browser.newContext({
@@ -46,7 +49,7 @@ async function settle(p: Page) {
 
 async function shot(name: string) {
   await settle(page);
-  await page.screenshot({ path: join(out, `${name}.png`) });
+  await page.screenshot({ path: join(out, `${name}.png`), clip: CLIP });
   console.log(`✔ ${name}.png`);
 }
 
@@ -98,7 +101,7 @@ await page.getByRole("heading", { name: "Costos" }).evaluate((el) => {
   window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 110);
 });
 await page.waitForTimeout(300);
-await page.screenshot({ path: join(out, "costos.png") });
+await page.screenshot({ path: join(out, "costos.png"), clip: CLIP });
 console.log("✔ costos.png");
 
 await browser.close();

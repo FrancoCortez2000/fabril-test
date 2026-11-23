@@ -14,8 +14,8 @@ describe("ScreenshotFrame", () => {
     const img = screen.getByRole("img", { name: "Pantalla de Producción en FABRIL" });
     expect(img).toHaveAttribute("src", "/capturas/produccion.png");
     expect(img).toHaveAttribute("loading", "lazy");
-    expect(img).toHaveAttribute("width", "1440");
-    expect(img).toHaveAttribute("height", "900");
+    expect(img).toHaveAttribute("width", "1192");
+    expect(img).toHaveAttribute("height", "745");
   });
 
   test("sin src conserva el marco vacío con su texto", () => {
