@@ -22,14 +22,22 @@ if (!userId) {
 
 const { data: memberships, error: membershipsError } = await admin
   .from("memberships")
-  .select("organization:organizations(id, name, is_demo)")
+  .select("organization_id")
   .eq("user_id", userId)
   .eq("status", "active");
 if (membershipsError) fail(`No se pudieron leer las fábricas: ${membershipsError.message}`);
 
-let demo = (memberships ?? []).flatMap((m) =>
-  m.organization?.is_demo ? [{ id: m.organization.id, name: m.organization.name }] : [],
-)[0];
+const { data: demos, error: demosError } = await admin
+  .from("organizations")
+  .select("id, name")
+  .eq("is_demo", true)
+  .in(
+    "id",
+    (memberships ?? []).map((m) => m.organization_id as string),
+  );
+if (demosError) fail(`No se pudieron leer las demos: ${demosError.message}`);
+
+let demo: { id: string; name: string } | undefined = demos?.[0];
 
 if (!demo) {
   console.log("El usuario no tiene demo: generando 6 meses de historia (puede tardar un minuto)…");
