@@ -4,7 +4,10 @@ import Link from "next/link";
 import type { DashboardAlert } from "@/features/dashboard/types";
 import { cn } from "@/lib/utils";
 
-const KIND: Record<DashboardAlert["kind"], { label: string; icon: LucideIcon; tone: string }> = {
+export const ALERT_KIND: Record<
+  DashboardAlert["kind"],
+  { label: string; icon: LucideIcon; tone: string }
+> = {
   out_of_stock: { label: "Sin stock", icon: CircleSlash, tone: "text-status-delayed" },
   low_stock: { label: "Stock bajo", icon: PackageMinus, tone: "text-status-pending" },
   delayed_order: { label: "Orden demorada", icon: Clock, tone: "text-status-delayed" },
@@ -25,7 +28,7 @@ export function AlertsPanel({ alerts }: { alerts: DashboardAlert[] }) {
       ) : (
         <ul className="divide-y">
           {alerts.map((alert, i) => {
-            const meta = KIND[alert.kind];
+            const meta = ALERT_KIND[alert.kind];
             const Icon = meta.icon;
             return (
               <li key={`${alert.kind}-${i}`}>

@@ -3,9 +3,10 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { DemoBadge } from "@/components/layout/org-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
+import type { DashboardAlert } from "@/features/dashboard/types";
 import type { AppSession } from "@/lib/auth/types";
 
-export function Topbar({ session }: { session: AppSession }) {
+export function Topbar({ session, alerts }: { session: AppSession; alerts: DashboardAlert[] }) {
   const activeOrg = session.organizations.find((o) => o.id === session.activeOrganizationId);
 
   return (
@@ -16,7 +17,7 @@ export function Topbar({ session }: { session: AppSession }) {
         {activeOrg?.isDemo ? <DemoBadge className="shrink-0 lg:hidden" /> : null}
       </div>
       <div className="flex items-center gap-1">
-        <NotificationsMenu />
+        <NotificationsMenu alerts={alerts} />
         <UserMenu user={session.user} mode={session.mode} />
       </div>
     </header>
