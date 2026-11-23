@@ -45,7 +45,8 @@ export async function getItem(orgId: string, id: string): Promise<ItemDetail | n
       .eq("organization_id", orgId)
       .maybeSingle();
     if (costingError) throw costingError;
-    if (c) {
+    // Sin receta la base no da costo estándar (null): no hay desglose ni margen que mostrar.
+    if (c && c.standard_cost !== null) {
       costing = {
         materials: Number(c.materials_cost),
         labor: Number(c.labor_cost),

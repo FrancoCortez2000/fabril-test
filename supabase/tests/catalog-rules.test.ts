@@ -261,3 +261,25 @@ describe("item_costing", () => {
     expect(rows).toEqual([{ standard_cost: "1818.00" }]);
   });
 });
+
+describe("item_costing sin receta", () => {
+  test("un producto sin receta no tiene costo estándar (no es cero)", async () => {
+    const bare = await ins(
+      `insert into public.items (organization_id, type, sku, name, unit_id, sale_price)
+       values ($1, 'finished_good', 'SIN-REC', 'Sin receta', 3, 1000) returning id`,
+      [org],
+    );
+    const row = await db.as(admin, (q) =>
+      q.one<{ materials_cost: string | null; standard_cost: string | null }>(
+        "select materials_cost::text, standard_cost::text from public.item_costing where item_id = $1",
+        [bare],
+      ),
+    );
+    expect(row.standard_cost).toBeNull();
+    expect(row.materials_cost).toBeNull();
+    const catalog = await db.as(admin, (q) =>
+      q.one<{ cost: string | null }>("select cost::text from public.item_catalog where id = $1", [bare]),
+    );
+    expect(catalog.cost).toBeNull();
+  });
+});

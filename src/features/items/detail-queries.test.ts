@@ -104,6 +104,16 @@ describe("getItem", () => {
     );
   });
 
+  test("un producto sin receta no tiene desglose ni margen (no es cero)", async () => {
+    db.tables.item_catalog = { data: [{ ...CATALOG, standard_cost: null, cost: null }] };
+    db.tables.item_costing = {
+      data: [{ materials_cost: null, labor_cost: 0, overhead_cost: 0, standard_cost: null }],
+    };
+    const detail = await getItem(ORG, ID);
+    expect(detail?.costing).toBeNull();
+    expect(detail?.marginPct).toBeNull();
+  });
+
   test("una materia prima no tiene costo estándar ni margen", async () => {
     db.tables.item_catalog = {
       data: [

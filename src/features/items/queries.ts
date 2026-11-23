@@ -7,6 +7,7 @@ import { sanitizeSearch } from "@/features/items/search";
 import type { ItemCategory, ItemKind, ItemRow } from "@/features/items/types";
 import type { UnitCode } from "@/features/products/schemas";
 import type { StockLevel } from "@/lib/domain/stock";
+import { isOutOfRange } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 /** Opciones de la tabla compartidas por Productos y Materias primas (las claves viajan por la URL). */
@@ -129,15 +130,25 @@ export async function listItems(
       .range((page - 1) * params.pageSize, page * params.pageSize - 1);
 
     const { data, count, error } = await query;
+    if (isOutOfRange(error)) return { rows: [] as CatalogRow[], total: 0, outOfRange: true };
     if (error) throw error;
-    return { rows: (data ?? []) as unknown as CatalogRow[], total: count ?? 0 };
+    return {
+      rows: (data ?? []) as unknown as CatalogRow[],
+      total: count ?? 0,
+      outOfRange: false,
+    };
   }
 
-  let result = await fetchPage(params.page);
-  // Una página más allá del final (p. ej. tras archivar el último ítem de la última página).
-  if (result.rows.length === 0 && result.total > 0) {
-    result = await fetchPage(clampPage(params.page, result.total, params.pageSize));
+  // Una página más allá del final (`?page=999`, o tras archivar el último ítem de la última página)
+  // termina en la última página, igual que el paginador.
+  let fetched = params.page;
+  let result = await fetchPage(fetched);
+  if (result.outOfRange) {
+    fetched = 1;
+    result = await fetchPage(fetched);
   }
+  const target = clampPage(params.page, result.total, params.pageSize);
+  if (result.total > 0 && target !== fetched) result = await fetchPage(target);
   return { rows: result.rows.map(toItemRow), total: result.total };
 }
 

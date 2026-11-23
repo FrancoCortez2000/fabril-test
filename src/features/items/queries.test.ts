@@ -197,6 +197,30 @@ describe("listItems", () => {
     expect(called("item_catalog.range").at(-1)).toEqual(["item_catalog.range", 10, 19]);
   });
 
+  test("una página fuera de rango (PGRST103) vuelve a la primera en lugar de romper", async () => {
+    db.responses = [
+      { data: [], count: 0, error: { message: "offset", code: "PGRST103" } as never },
+      { data: [RAW], count: 1 },
+    ];
+    const { rows } = await listItems(ORG, "raw_material", params({ page: 999 }));
+    expect(rows).toHaveLength(1);
+    expect(called("item_catalog.range").concat(called("movement_feed.range")).at(-1)).toEqual([
+      expect.stringMatching(/.range$/),
+      0,
+      24,
+    ]);
+  });
+
+  test("una página fuera de rango termina en la ÚLTIMA página, coherente con el paginador", async () => {
+    db.responses = [
+      { data: [], count: 0, error: { message: "offset", code: "PGRST103" } as never },
+      { data: [RAW], count: 60 },
+      { data: [RAW], count: 60 },
+    ];
+    await listItems(ORG, "raw_material", params({ page: 999 }));
+    expect(called("item_catalog.range").at(-1)).toEqual(["item_catalog.range", 50, 74]);
+  });
+
   test("si la base falla, lanza el error", async () => {
     db.responses = [{ data: [], count: 0, error: { message: "boom" } }];
     await expect(listItems(ORG, "raw_material", params())).rejects.toMatchObject({

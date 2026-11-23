@@ -8,6 +8,7 @@ import { MOVEMENT_TYPE_LABELS, type MovementRow } from "@/features/inventory/typ
 import { sanitizeSearch } from "@/features/items/search";
 import type { ItemCategory, ItemKind } from "@/features/items/types";
 import type { StockLevel } from "@/lib/domain/stock";
+import { isOutOfRange } from "@/lib/db-errors";
 import { createClient } from "@/lib/supabase/server";
 
 /** Opciones de la tabla de existencias (las claves viajan por la URL). */
@@ -116,11 +117,29 @@ export async function listStock(
   }
 
   const column = SORT_COLUMNS[params.sort?.id ?? ""] ?? "name";
-  const page = await base("*", "exact")
-    .order(column, { ascending: !(params.sort?.desc ?? false), nullsFirst: false })
-    .order("id")
-    .range((params.page - 1) * params.pageSize, params.page * params.pageSize - 1);
-  if (page.error) throw page.error;
+  async function fetchStockPage(pageNumber: number) {
+    const result = await base("*", "exact")
+      .order(column, { ascending: !(params.sort?.desc ?? false), nullsFirst: false })
+      .order("id")
+      .range((pageNumber - 1) * params.pageSize, pageNumber * params.pageSize - 1);
+    if (isOutOfRange(result.error)) return { rows: [] as CatalogRow[], total: 0, outOfRange: true };
+    if (result.error) throw result.error;
+    return {
+      rows: (result.data ?? []) as unknown as CatalogRow[],
+      total: result.count ?? 0,
+      outOfRange: false,
+    };
+  }
+
+  // Una página más allá del final termina en la última página, igual que el paginador.
+  let fetched = params.page;
+  let page = await fetchStockPage(fetched);
+  if (page.outOfRange) {
+    fetched = 1;
+    page = await fetchStockPage(fetched);
+  }
+  const target = clampPage(params.page, page.total, params.pageSize);
+  if (page.total > 0 && target !== fetched) page = await fetchStockPage(target);
 
   const all = await base("level, stock_value");
   if (all.error) throw all.error;
@@ -137,8 +156,8 @@ export async function listStock(
   );
 
   return {
-    rows: ((page.data ?? []) as unknown as CatalogRow[]).map(toStockRow),
-    total: page.count ?? 0,
+    rows: page.rows.map(toStockRow),
+    total: page.total,
     totals: { ...totals, value: Math.round(totals.value * 100) / 100 },
   };
 }
@@ -214,14 +233,23 @@ export async function listMovements(
       .order(column, { ascending: !(params.sort?.desc ?? false), nullsFirst: false })
       .order("id", { ascending: !(params.sort?.desc ?? false) })
       .range((page - 1) * params.pageSize, page * params.pageSize - 1);
+    if (isOutOfRange(result.error)) return { rows: [] as FeedRow[], total: 0, outOfRange: true };
     if (result.error) throw result.error;
-    return { rows: (result.data ?? []) as unknown as FeedRow[], total: result.count ?? 0 };
+    return {
+      rows: (result.data ?? []) as unknown as FeedRow[],
+      total: result.count ?? 0,
+      outOfRange: false,
+    };
   }
 
-  let result = await fetchPage(params.page);
-  if (result.rows.length === 0 && result.total > 0) {
-    result = await fetchPage(clampPage(params.page, result.total, params.pageSize));
+  let fetched = params.page;
+  let result = await fetchPage(fetched);
+  if (result.outOfRange) {
+    fetched = 1;
+    result = await fetchPage(fetched);
   }
+  const target = clampPage(params.page, result.total, params.pageSize);
+  if (result.total > 0 && target !== fetched) result = await fetchPage(target);
   return { rows: result.rows.map(toMovementRow), total: result.total };
 }
 
