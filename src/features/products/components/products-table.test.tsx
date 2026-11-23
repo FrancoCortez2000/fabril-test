@@ -11,7 +11,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace, push: vi.fn() }),
   usePathname: () => "/app/productos",
 }));
-vi.mock("sonner", () => ({ toast: { info: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { info: vi.fn(), success: vi.fn() } }));
+vi.mock("@/features/items/actions", () => ({ saveItem: vi.fn() }));
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -26,6 +27,7 @@ const params: TableParams = { page: 1, pageSize: 25, sort: null, q: "balde", fil
 
 const row = (over: Partial<ItemRow> = {}): ItemRow => ({
   id: "00000000-0000-4000-8000-000000000001",
+  type: "finished_good",
   sku: "BID-5L-AZ",
   name: "Bidón 5 L azul",
   description: "",
@@ -37,6 +39,13 @@ const row = (over: Partial<ItemRow> = {}): ItemRow => ({
   standardCost: 1186.4,
   cost: 1186.4,
   salePrice: 2850,
+  standardLaborMinutes: 15,
+  overheadPerUnit: 20,
+  preferredSupplierId: null,
+  lastPurchaseCost: null,
+  committed: 0,
+  available: 3420,
+  hasMovements: true,
   status: "active",
   archived: false,
   level: "ok",
@@ -58,6 +67,7 @@ function renderTable(openNew: boolean, kind: "finished_good" | "raw_material" = 
       total={2}
       params={params}
       categories={[CAT]}
+      suppliers={[]}
       openNew={openNew}
     />
   );

@@ -8,6 +8,7 @@ export type ItemCategory = { id: string; name: string };
 /** Fila de las listas de Productos y Materias primas (vista `item_catalog`). */
 export type ItemRow = {
   id: string;
+  type: ItemKind;
   sku: string;
   name: string;
   description: string;
@@ -22,6 +23,14 @@ export type ItemRow = {
   /** Costo que muestra la lista: promedio para materias primas, estándar para productos. */
   cost: number | null;
   salePrice: number | null;
+  standardLaborMinutes: number;
+  overheadPerUnit: number;
+  preferredSupplierId: string | null;
+  lastPurchaseCost: number | null;
+  committed: number;
+  available: number;
+  /** Con movimientos de stock: la unidad ya no se puede cambiar. */
+  hasMovements: boolean;
   status: "active" | "inactive";
   archived: boolean;
   level: StockLevel;

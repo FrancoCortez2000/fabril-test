@@ -32,8 +32,9 @@ const STATE_CONDITIONS: Record<string, string> = {
 };
 const uuid = z.uuid();
 
-type CatalogRow = {
+export type CatalogRow = {
   id: string;
+  type: ItemKind;
   sku: string;
   name: string;
   description: string | null;
@@ -44,6 +45,13 @@ type CatalogRow = {
   current_stock: number;
   avg_cost: number;
   sale_price: number | null;
+  standard_labor_minutes: number;
+  overhead_per_unit: number;
+  preferred_supplier_id: string | null;
+  last_purchase_cost: number | null;
+  committed: number;
+  available: number;
+  has_movements: boolean;
   standard_cost: number | null;
   cost: number | null;
   status: "active" | "inactive";
@@ -51,9 +59,10 @@ type CatalogRow = {
   level: StockLevel;
 };
 
-function toItemRow(r: CatalogRow): ItemRow {
+export function toItemRow(r: CatalogRow): ItemRow {
   return {
     id: r.id,
+    type: r.type,
     sku: r.sku,
     name: r.name,
     description: r.description ?? "",
@@ -66,6 +75,13 @@ function toItemRow(r: CatalogRow): ItemRow {
     standardCost: r.standard_cost === null ? null : Number(r.standard_cost),
     cost: r.cost === null ? null : Number(r.cost),
     salePrice: r.sale_price === null ? null : Number(r.sale_price),
+    standardLaborMinutes: Number(r.standard_labor_minutes),
+    overheadPerUnit: Number(r.overhead_per_unit),
+    preferredSupplierId: r.preferred_supplier_id,
+    lastPurchaseCost: r.last_purchase_cost === null ? null : Number(r.last_purchase_cost),
+    committed: Number(r.committed),
+    available: Number(r.available),
+    hasMovements: r.has_movements,
     status: r.status,
     archived: r.archived_at !== null,
     level: r.level,

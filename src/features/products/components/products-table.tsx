@@ -22,17 +22,18 @@ import {
   type ItemKind,
   type ItemRow,
 } from "@/features/items/types";
-import { ProductFormDialog } from "@/features/products/components/product-form-dialog";
+import { ItemFormDialog, type ItemFormInitial } from "@/features/items/components/item-form-dialog";
 import { StockCell } from "@/features/products/components/stock-cell";
-import type { ProductFormValues } from "@/features/products/schemas";
 import { STOCK_LEVEL_LABELS } from "@/lib/domain/stock";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const col = columnHelper<ItemRow>();
 
-function toFormValues(p: ItemRow): ProductFormValues {
+function toFormValues(p: ItemRow): ItemFormInitial {
   return {
+    id: p.id,
+    kind: p.type,
     name: p.name,
     sku: p.sku,
     description: p.description,
@@ -40,7 +41,9 @@ function toFormValues(p: ItemRow): ProductFormValues {
     unitCode: p.unitCode,
     minStock: p.minStock,
     salePrice: p.salePrice,
-    manualCost: null,
+    standardLaborMinutes: p.standardLaborMinutes,
+    overheadPerUnit: p.overheadPerUnit,
+    preferredSupplierId: p.preferredSupplierId,
     status: p.status,
   };
 }
@@ -67,6 +70,7 @@ export function ProductsTable({
   total,
   params,
   categories,
+  suppliers,
   openNew,
 }: {
   kind: ItemKind;
@@ -74,6 +78,7 @@ export function ProductsTable({
   total: number;
   params: TableParams;
   categories: ItemCategory[];
+  suppliers: { id: string; name: string }[];
   /** Abrir el formulario de alta al cargar (`?nuevo=1`, desde el menú de comandos). */
   openNew: boolean;
 }) {
@@ -81,7 +86,11 @@ export function ProductsTable({
   const pathname = usePathname();
   const labels = ITEM_LABELS[kind];
   const isProduct = kind === "finished_good";
-  const [dialog, setDialog] = useState<{ open: boolean; values?: ProductFormValues }>({
+  const [dialog, setDialog] = useState<{
+    open: boolean;
+    values?: ItemFormInitial;
+    unitLocked?: boolean;
+  }>({
     open: openNew,
   });
 
@@ -98,6 +107,10 @@ export function ProductsTable({
       const qs = serializeTableParams(params).toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     }
+  }
+
+  function openEdit(item: ItemRow) {
+    setDialog({ open: true, values: toFormValues(item), unitLocked: item.hasMovements });
   }
 
   const columns: DataColumn<ItemRow>[] = [
@@ -186,9 +199,7 @@ export function ProductsTable({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onSelect={() => setDialog({ open: true, values: toFormValues(row.original) })}
-            >
+            <DropdownMenuItem onSelect={() => openEdit(row.original)}>
               <Pencil aria-hidden />
               Editar
             </DropdownMenuItem>
@@ -252,7 +263,7 @@ export function ProductsTable({
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`Editar ${p.name}`}
-                onClick={() => setDialog({ open: true, values: toFormValues(p) })}
+                onClick={() => openEdit(p)}
               >
                 <Pencil />
               </Button>
@@ -295,11 +306,14 @@ export function ProductsTable({
           )
         }
       />
-      <ProductFormDialog
+      <ItemFormDialog
         open={dialog.open}
         onOpenChange={setOpen}
+        kind={kind}
         categories={categories}
+        suppliers={suppliers}
         initialValues={dialog.values}
+        unitLocked={dialog.unitLocked}
       />
     </>
   );

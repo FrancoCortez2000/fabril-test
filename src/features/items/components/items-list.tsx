@@ -1,5 +1,6 @@
 import { clampPage, parseTableParams } from "@/components/data-table/params";
 import { Skeleton } from "@/components/ui/skeleton";
+import { listSuppliers } from "@/features/items/detail-queries";
 import { ITEM_TABLE_OPTIONS, listCategories, listItems } from "@/features/items/queries";
 import type { ItemKind } from "@/features/items/types";
 import { ProductsTable } from "@/features/products/components/products-table";
@@ -19,9 +20,10 @@ export async function ItemsList({
   const session = await requireSession();
   const sp = await searchParams;
   const params = parseTableParams(sp, ITEM_TABLE_OPTIONS);
-  const [{ rows, total }, categories] = await Promise.all([
+  const [{ rows, total }, categories, suppliers] = await Promise.all([
     listItems(session.activeOrganizationId, kind, params),
     listCategories(session.activeOrganizationId, kind),
+    kind === "raw_material" ? listSuppliers(session.activeOrganizationId) : Promise.resolve([]),
   ]);
 
   return (
@@ -31,6 +33,7 @@ export async function ItemsList({
       total={total}
       params={{ ...params, page: clampPage(params.page, total, params.pageSize) }}
       categories={categories}
+      suppliers={suppliers}
       openNew={sp.nuevo === "1"}
     />
   );
