@@ -59,6 +59,8 @@ const FEED = {
   reason: "Conteo físico",
   occurred_at: "2026-10-01T15:00:00+00:00",
   reference: null,
+  reference_type: null,
+  reference_id: null,
   reversible: true,
   reversed: false,
 };
@@ -124,6 +126,8 @@ describe("listMovements", () => {
       balanceAfter: 110,
       reason: "Conteo físico",
       reference: null,
+      referenceType: null,
+      referenceId: null,
       reversible: true,
       reversed: false,
     });

@@ -76,6 +76,8 @@ export const movement = (over: Partial<MovementRow> = {}): MovementRow => ({
   balanceAfter: 100,
   reason: null,
   reference: "OC-2026-0001",
+  referenceType: "purchase_order",
+  referenceId: "88888888-8888-4888-8888-888888888888",
   reversible: false,
   reversed: false,
   ...over,

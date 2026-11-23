@@ -63,7 +63,14 @@ export function PurchaseHistory({ rows, unitCode }: { rows: PurchaseLineRow[]; u
       <TableBody>
         {rows.map((r) => (
           <TableRow key={r.purchaseId}>
-            <TableCell className="font-mono text-xs">{r.code}</TableCell>
+            <TableCell className="font-mono text-xs">
+              <Link
+                href={`/app/compras/${r.purchaseId}`}
+                className="underline-offset-4 hover:underline"
+              >
+                {r.code}
+              </Link>
+            </TableCell>
             <TableCell>{r.supplierName}</TableCell>
             <TableCell className="whitespace-nowrap">{formatDate(r.orderDate)}</TableCell>
             <TableCell className="tabular text-right">

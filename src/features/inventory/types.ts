@@ -15,6 +15,9 @@ export type MovementRow = {
   reason: string | null;
   /** Código de la orden de compra o de producción de origen (sólo texto hasta el bloque 4B). */
   reference: string | null;
+  /** Tipo y id del documento de origen, para enlazar a su ficha. */
+  referenceType: "purchase_order" | "production_order" | null;
+  referenceId: string | null;
   /** Se puede revertir a mano: movimiento manual o ajuste que nadie revirtió. */
   reversible: boolean;
   reversed: boolean;
