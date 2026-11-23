@@ -1,33 +1,36 @@
 import Link from "next/link";
 
-import { DemoRequestForm } from "@/features/marketing/components/demo-request-form";
+import { Button } from "@/components/ui/button";
 
 export function DemoSection() {
   return (
     <section id="demo" aria-labelledby="demo-titulo" className="scroll-mt-20 border-b">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:py-20">
-        <div className="max-w-md">
-          <h2 id="demo-titulo" className="font-display text-4xl leading-tight">
-            Mirá FABRIL funcionando con una fábrica de ejemplo
-          </h2>
-          <p className="mt-4 text-base text-muted-foreground">
-            Te mostramos el sistema en una videollamada de media hora, con una fábrica de ejemplo
-            cargada, y vemos juntos si se adapta a tu forma de trabajar.
-          </p>
-          <p className="mt-4 text-muted-foreground">
-            ¿Ya tenés usuario?{" "}
-            <Link
-              href="/ingresar"
-              className="font-medium text-foreground underline underline-offset-4"
-            >
-              Ingresá al sistema
+      <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6 lg:py-20">
+        <h2 id="demo-titulo" className="font-display text-4xl leading-tight">
+          Recorré FABRIL con una fábrica de ejemplo
+        </h2>
+        <p className="mx-auto mt-4 max-w-[52ch] text-base text-muted-foreground">
+          Sin registrarte y sin instalar nada. Entrás a una fábrica de plásticos con seis meses de
+          historia: producción, inventario, recetas, compras y costos. Es de solo lectura, así que
+          podés abrir todo sin miedo a romper algo.
+        </p>
+        <div className="mt-8">
+          <Button size="lg" asChild>
+            <Link href="/demo" prefetch={false}>
+              Probar la demo
             </Link>
-            .
-          </p>
+          </Button>
         </div>
-        <div className="relative">
-          <DemoRequestForm />
-        </div>
+        <p className="mt-6 text-muted-foreground">
+          ¿Ya tenés usuario?{" "}
+          <Link
+            href="/ingresar"
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            Ingresá al sistema
+          </Link>
+          .
+        </p>
       </div>
     </section>
   );

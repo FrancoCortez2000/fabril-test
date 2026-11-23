@@ -27,7 +27,9 @@ export function SiteHeader() {
             <Link href="/ingresar">Ingresar</Link>
           </Button>
           <Button asChild className="hidden sm:inline-flex">
-            <a href="#demo">Solicitar demostración</a>
+            <Link href="/demo" prefetch={false}>
+              Probar la demo
+            </Link>
           </Button>
         </div>
       </div>
