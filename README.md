@@ -65,6 +65,10 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 
 > **Email de Supabase:** el servicio incluido sólo entrega a direcciones del equipo del proyecto y tiene un límite bajo por hora. Para que la recuperación de contraseña llegue a clientes reales, configurá un SMTP propio en _Authentication → Emails → SMTP Settings_, por ejemplo Resend o Postmark. Las invitaciones no dependen del email: se comparten con un enlace.
 
+### Capturas de la landing
+
+Las imágenes de la landing salen de la demo pública. Para regenerarlas: `npm run build`, `npx next start -p 3100` en otra terminal y `npm run capturas` (necesita Chromium: `npx playwright install chromium`).
+
 ## Rutas
 
 | Ruta                                      | Qué hay                                                                                 |
@@ -90,6 +94,7 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 | `npm test`                    | Todos los tests: unitarios, componentes y base de datos                           |
 | `npm run test:db`             | Sólo las pruebas SQL (PGlite: migraciones, RLS, stock, compras, producción, demo) |
 | `npm run format`              | Prettier                                                                          |
+| `npm run capturas`            | Regenera `public/capturas/*.png` desde la demo (con `next start -p 3100` andando) |
 
 ## Estructura
 
@@ -103,7 +108,7 @@ src/
 supabase/
   migrations/     esquema versionado: núcleo, catálogo, inventario, compras, producción, storage, demo
   tests/          pruebas SQL con PGlite (shim.sql imita los roles y esquemas de Supabase)
-scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify
+scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify, capturas
 docs/             plan técnico y planes de implementación
 ```
 

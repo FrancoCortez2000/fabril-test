@@ -22,7 +22,7 @@ export async function PurchaseView({ id }: { id: string }) {
       <PageHeader
         title={purchase.code}
         breadcrumbs={[{ label: "Compras", href: "/app/compras" }, { label: purchase.code }]}
-        description={`Orden de compra a ${purchase.supplierName}.`}
+        description={`Orden de compra a ${purchase.supplierName.replace(/\.$/, "")}.`}
         actions={<PurchaseActions purchase={purchase} lines={lines} />}
       />
       <PurchaseDetail purchase={purchase} lines={lines} />

@@ -53,7 +53,7 @@ export function ModulesShowcase() {
                     ))}
                   </ul>
                 </div>
-                <ScreenshotFrame label={`Pantalla de ${m.title} en FABRIL`} />
+                <ScreenshotFrame label={`Pantalla de ${m.title} en FABRIL`} src={m.screenshot} />
               </article>
             );
           })}

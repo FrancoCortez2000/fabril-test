@@ -34,6 +34,8 @@ export type ModuleFeature = {
   title: string;
   summary: string;
   points: string[];
+  /** Captura de la pantalla (la genera `npm run capturas`). */
+  screenshot: string;
 };
 
 export const MODULES: ModuleFeature[] = [
@@ -48,6 +50,7 @@ export const MODULES: ModuleFeature[] = [
       "Partes de avance con unidades buenas y defectuosas",
       "Órdenes demoradas marcadas automáticamente",
     ],
+    screenshot: "/capturas/produccion.png",
   },
   {
     id: "inventario",
@@ -60,6 +63,7 @@ export const MODULES: ModuleFeature[] = [
       "Ajustes por conteo físico sin borrar la historia",
       "Alertas de stock bajo y sin stock",
     ],
+    screenshot: "/capturas/inventario.png",
   },
   {
     id: "recetas",
@@ -72,6 +76,7 @@ export const MODULES: ModuleFeature[] = [
       "Aviso de faltantes antes de iniciar la producción",
       "Orden de compra armada con lo que falta",
     ],
+    screenshot: "/capturas/recetas.png",
   },
   {
     id: "compras",
@@ -84,6 +89,7 @@ export const MODULES: ModuleFeature[] = [
       "Historial de compras de cada materia prima",
       "Compras con entrega vencida a la vista",
     ],
+    screenshot: "/capturas/compras.png",
   },
   {
     id: "costos",
@@ -96,6 +102,7 @@ export const MODULES: ModuleFeature[] = [
       "Costo planificado y costo real de cada orden de producción",
       "Desvío en pesos y en porcentaje para ver dónde se fue el costo",
     ],
+    screenshot: "/capturas/costos.png",
   },
 ];
 
