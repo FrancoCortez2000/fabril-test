@@ -235,3 +235,25 @@ test("admin_create_demo_organization es sólo para el servidor", async () => {
     db.as(owner, (q) => q.one("select public.admin_create_demo_organization($1)", [owner])),
   ).rejects.toThrow(/permission denied/);
 });
+
+test("el costo real de mano de obra se parece al planificado (la demo cuenta una historia creíble)", async () => {
+  const rows = await db.su.many<{ ratio: string; total_ratio: string }>(
+    `select (actual_labor_cost / nullif(planned_labor_cost, 0))::text as ratio,
+            ((actual_material_cost + actual_labor_cost + actual_overhead_cost)
+              / nullif(planned_material_cost + planned_labor_cost + planned_overhead_cost, 0))::text as total_ratio
+       from public.production_orders
+      where organization_id = $1 and status = 'completed'`,
+    [demo],
+  );
+  expect(rows.length).toBeGreaterThan(20);
+  for (const r of rows) {
+    expect(Number(r.ratio)).toBeGreaterThan(0.6);
+    expect(Number(r.ratio)).toBeLessThan(1.6);
+    expect(Number(r.total_ratio)).toBeGreaterThan(0.7);
+    expect(Number(r.total_ratio)).toBeLessThan(1.4);
+  }
+  const over = rows.filter((r) => Number(r.total_ratio) > 1.02).length;
+  const under = rows.filter((r) => Number(r.total_ratio) < 0.98).length;
+  expect(over).toBeGreaterThan(3);
+  expect(under).toBeGreaterThan(3);
+});
