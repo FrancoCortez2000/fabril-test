@@ -23,30 +23,13 @@ import {
   type ItemRow,
 } from "@/features/items/types";
 import { ItemFormDialog, type ItemFormInitial } from "@/features/items/components/item-form-dialog";
+import { toFormValues } from "@/features/items/form-values";
 import { StockCell } from "@/features/products/components/stock-cell";
 import { STOCK_LEVEL_LABELS } from "@/lib/domain/stock";
 import { formatCurrency, formatQuantity } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const col = columnHelper<ItemRow>();
-
-function toFormValues(p: ItemRow): ItemFormInitial {
-  return {
-    id: p.id,
-    kind: p.type,
-    name: p.name,
-    sku: p.sku,
-    description: p.description,
-    categoryId: p.category?.id ?? null,
-    unitCode: p.unitCode,
-    minStock: p.minStock,
-    salePrice: p.salePrice,
-    standardLaborMinutes: p.standardLaborMinutes,
-    overheadPerUnit: p.overheadPerUnit,
-    preferredSupplierId: p.preferredSupplierId,
-    status: p.status,
-  };
-}
 
 function ItemThumb({ kind }: { kind: ItemKind }) {
   const Icon = kind === "raw_material" ? Boxes : Package;
