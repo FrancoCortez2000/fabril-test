@@ -103,3 +103,67 @@ export async function listRawMaterialOptions(orgId: string): Promise<RawMaterial
     unitCode: m.unit_code as string,
   }));
 }
+
+/**
+ * Todas las recetas de la fábrica por producto, con el costo y la disponibilidad de cada materia
+ * prima: alimenta la vista previa de "Nueva orden" sin consultar al servidor al cambiar de producto.
+ */
+export async function listBoms(orgId: string): Promise<Record<string, BomView>> {
+  const supabase = await createClient();
+  const { data: boms, error } = await supabase
+    .from("boms")
+    .select("id, item_id, output_qty, default_waste_pct, notes")
+    .eq("organization_id", orgId);
+  if (error) throw error;
+  if (!boms?.length) return {};
+
+  const [{ data: org, error: orgError }, { data: lines, error: linesError }] = await Promise.all([
+    supabase.from("organizations").select("default_waste_pct").eq("id", orgId).maybeSingle(),
+    supabase
+      .from("bom_lines")
+      .select("bom_id, component_item_id, quantity, waste_pct, position")
+      .eq("organization_id", orgId)
+      .order("position"),
+  ]);
+  if (orgError) throw orgError;
+  if (linesError) throw linesError;
+
+  const ids = [...new Set((lines ?? []).map((l) => l.component_item_id as string))];
+  const { data: items, error: itemsError } = ids.length
+    ? await supabase
+        .from("item_catalog")
+        .select("id, name, unit_code, avg_cost, available")
+        .eq("organization_id", orgId)
+        .in("id", ids)
+    : { data: [], error: null };
+  if (itemsError) throw itemsError;
+  const byId = new Map((items ?? []).map((i) => [i.id as string, i]));
+
+  const result: Record<string, BomView> = {};
+  for (const bom of boms) {
+    result[bom.item_id as string] = {
+      outputQty: Number(bom.output_qty),
+      defaultWastePct: bom.default_waste_pct === null ? null : Number(bom.default_waste_pct),
+      orgWastePct: Number(org?.default_waste_pct ?? 0),
+      notes: bom.notes ?? null,
+      lines: (lines ?? [])
+        .filter((l) => l.bom_id === bom.id)
+        .flatMap((l) => {
+          const item = byId.get(l.component_item_id as string);
+          if (!item) return [];
+          return [
+            {
+              itemId: l.component_item_id as string,
+              name: item.name as string,
+              unitCode: item.unit_code as string,
+              quantity: Number(l.quantity),
+              wastePct: l.waste_pct === null ? null : Number(l.waste_pct),
+              avgCost: Number(item.avg_cost),
+              available: Number(item.available),
+            },
+          ];
+        }),
+    };
+  }
+  return result;
+}

@@ -29,6 +29,41 @@ test("lista los movimientos con tipo, cantidad con signo, saldo y documento de o
   expect(screen.getByText("OP-2026-0001")).toBeVisible();
 });
 
+test("el documento de origen enlaza a su ficha según el tipo", () => {
+  render(
+    <ItemMovements
+      rows={[
+        movement(),
+        movement({
+          id: "m2",
+          type: "production_consumption",
+          reference: "OP-2026-0001",
+          referenceType: "production_order",
+          referenceId: "99999999-9999-4999-8999-999999999999",
+        }),
+      ]}
+    />,
+  );
+  expect(screen.getByRole("link", { name: "OC-2026-0001" })).toHaveAttribute(
+    "href",
+    "/app/compras/88888888-8888-4888-8888-888888888888",
+  );
+  expect(screen.getByRole("link", { name: "OP-2026-0001" })).toHaveAttribute(
+    "href",
+    "/app/produccion/99999999-9999-4999-8999-999999999999",
+  );
+});
+
+test("una referencia sin documento identificable queda como texto", () => {
+  render(
+    <ItemMovements
+      rows={[movement({ reference: "OC-X", referenceType: null, referenceId: null })]}
+    />,
+  );
+  expect(screen.getByText("OC-X")).toBeVisible();
+  expect(screen.queryByRole("link", { name: "OC-X" })).toBeNull();
+});
+
 test("el motivo y la marca de revertido se ven", () => {
   render(
     <ItemMovements

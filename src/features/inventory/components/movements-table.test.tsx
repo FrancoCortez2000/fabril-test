@@ -79,6 +79,15 @@ test("muestra fecha, ítem, tipo, cantidad con signo, saldo y documento", () => 
   expect(screen.getAllByText("OP-2026-0001").length).toBeGreaterThan(0);
 });
 
+test("el documento de origen enlaza a su ficha", () => {
+  renderTable([movement()]);
+  const links = screen.getAllByRole("link", { name: "OC-2026-0001" });
+  expect(links.length).toBeGreaterThan(0);
+  for (const link of links) {
+    expect(link).toHaveAttribute("href", "/app/compras/88888888-8888-4888-8888-888888888888");
+  }
+});
+
 test("el ítem enlaza a su ficha según su tipo", () => {
   renderTable();
   expect(screen.getAllByRole("link", { name: /PEAD/ })[0]).toHaveAttribute(

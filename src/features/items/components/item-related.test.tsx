@@ -31,7 +31,7 @@ test("usado en: sin recetas explica que no se usa", () => {
   expect(screen.getByText(/ninguna receta/i)).toBeVisible();
 });
 
-test("compras recientes: código, proveedor, fecha, cantidad y precio (sin enlace hasta el 4B)", () => {
+test("compras recientes: código, proveedor, fecha, cantidad y precio, con enlace a la compra", () => {
   render(
     <PurchaseHistory
       rows={[
@@ -56,7 +56,10 @@ test("compras recientes: código, proveedor, fecha, cantidad y precio (sin enlac
   expect(screen.getByText("100 kg")).toBeVisible();
   expect(screen.getByText(/50,00/)).toBeVisible();
   expect(screen.getByText("Recibida")).toBeVisible();
-  expect(screen.queryByRole("link", { name: /OC-2026-0001/ })).toBeNull();
+  expect(screen.getByRole("link", { name: /OC-2026-0001/ })).toHaveAttribute(
+    "href",
+    "/app/compras/po1",
+  );
 });
 
 test("compras recientes: sin compras muestra un estado vacío", () => {

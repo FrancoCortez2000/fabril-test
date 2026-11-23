@@ -81,7 +81,7 @@ describe("alertHref", () => {
     ).toBe(`/app/productos/${ITEM}`);
   });
 
-  test("las órdenes y compras llevan a su lista (las fichas llegan en el bloque 4B)", () => {
+  test("las órdenes y compras llevan a su ficha", () => {
     expect(
       alertHref({
         kind: "delayed_order",
@@ -89,7 +89,7 @@ describe("alertHref", () => {
         entityId: ITEM,
         itemType: null,
       }),
-    ).toBe("/app/produccion");
+    ).toBe(`/app/produccion/${ITEM}`);
     expect(
       alertHref({
         kind: "late_purchase",
@@ -97,6 +97,6 @@ describe("alertHref", () => {
         entityId: ITEM,
         itemType: null,
       }),
-    ).toBe("/app/compras");
+    ).toBe(`/app/compras/${ITEM}`);
   });
 });

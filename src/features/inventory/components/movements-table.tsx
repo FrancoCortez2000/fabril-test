@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DocumentReference } from "@/features/inventory/components/document-reference";
 import { ReverseDialog } from "@/features/inventory/components/reverse-dialog";
 import { signedQuantity } from "@/features/inventory/format";
 import { MOVEMENT_TYPE_LABELS, type MovementRow } from "@/features/inventory/types";
@@ -188,7 +189,7 @@ export function MovementsTable({
 function Detail({ m }: { m: MovementRow }) {
   return (
     <span className="space-x-2">
-      {m.reference ? <span className="font-mono text-xs">{m.reference}</span> : null}
+      <DocumentReference reference={m.reference} type={m.referenceType} id={m.referenceId} />
       {m.reason ? <span className="text-13">{m.reason}</span> : null}
       {m.reversed ? (
         <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-xs text-muted-foreground">

@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DocumentReference } from "@/features/inventory/components/document-reference";
 import { signedQuantity } from "@/features/inventory/format";
 import { MOVEMENT_TYPE_LABELS, type MovementRow } from "@/features/inventory/types";
 import { formatCurrency, formatDateTime, formatQuantity } from "@/lib/format";
@@ -42,7 +43,11 @@ export function ItemMovements({ rows }: { rows: MovementRow[] }) {
               {m.balanceAfter === null ? "—" : formatQuantity(m.balanceAfter, m.unitCode)}
             </TableCell>
             <TableCell className="space-x-2">
-              {m.reference ? <span className="font-mono text-xs">{m.reference}</span> : null}
+              <DocumentReference
+                reference={m.reference}
+                type={m.referenceType}
+                id={m.referenceId}
+              />
               {m.reason ? <span className="text-13">{m.reason}</span> : null}
               {m.reversed ? (
                 <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-xs text-muted-foreground">

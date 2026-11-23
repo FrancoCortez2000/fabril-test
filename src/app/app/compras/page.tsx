@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { ModulePlaceholder } from "@/components/layout/module-placeholder";
+import { PageHeader } from "@/components/data/page-header";
+import {
+  PurchasesList,
+  PurchasesListSkeleton,
+} from "@/features/purchasing/components/purchases-list";
 
 export const metadata: Metadata = { title: "Compras" };
 
-export default function ComprasPage() {
+export default function ComprasPage(props: PageProps<"/app/compras">) {
   return (
-    <ModulePlaceholder title="Compras" description="Órdenes de compra y recepción de mercadería." />
+    <>
+      <PageHeader
+        title="Compras"
+        description="Órdenes de compra a proveedores: recibí la mercadería y el stock se actualiza solo."
+      />
+      <Suspense fallback={<PurchasesListSkeleton />}>
+        <PurchasesList searchParams={props.searchParams} />
+      </Suspense>
+    </>
   );
 }

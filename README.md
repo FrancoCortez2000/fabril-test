@@ -2,7 +2,7 @@
 
 Sistema de gestión integral para pequeñas y medianas fábricas: producción, inventario, recetas (BOM), compras, empleados, costos y reportes.
 
-> **Estado:** Etapa 4, bloque 4A. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`), y funcionan sobre la base real el Dashboard, Productos, Materias primas (con recetas y costo estándar), Inventario (existencias, entradas, salidas, ajustes, movimientos y reversión) y Configuración. Compras y Producción llegan en el bloque 4B. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
+> **Estado:** Etapa 4 completa. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`) y funcionan sobre la base real el Dashboard (con la campana de alertas), Productos, Materias primas (con recetas y costo estándar), Inventario, **Compras** (confirmar, recibir, cancelar), **Producción** (nueva orden con vista previa de materiales; iniciar, registrar avance, completar, cancelar y crear compra con faltantes; costo planificado vs. real) y Configuración. Quedan para retoques: carga de horas y consumos reales al completar, devoluciones al cancelar y asignar personal a la orden. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
 
 ## Stack
 
@@ -65,19 +65,25 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 
 > **Email de Supabase:** el servicio incluido sólo entrega a direcciones del equipo del proyecto y tiene un límite bajo por hora. Para que la recuperación de contraseña llegue a clientes reales, configurá un SMTP propio en _Authentication → Emails → SMTP Settings_, por ejemplo Resend o Postmark. Las invitaciones no dependen del email: se comparten con un enlace.
 
+### Capturas de la landing
+
+Las imágenes de la landing salen de la demo pública. Para regenerarlas: `npm run build`, `npx next start -p 3100` en otra terminal y `npm run capturas` (necesita Chromium: `npx playwright install chromium`).
+
 ## Rutas
 
-| Ruta                                      | Qué hay                                                                                 |
-| ----------------------------------------- | --------------------------------------------------------------------------------------- |
-| `/`                                       | Landing pública con calculadora de materiales y el botón «Probar la demo»               |
-| `/demo`                                   | Entra a la demo pública (sin cuenta, solo lectura) y lleva a `/app`                     |
-| `/ingresar`, `/recuperar`, `/restablecer` | Ingreso, recuperación y elección de contraseña (también para invitaciones)              |
-| `/auth/confirm`                           | Destino de los enlaces de email y de invitación                                         |
-| `/app`                                    | Panel: con sesión (todo, con escritura) o con la demo pública (solo lectura)            |
-| `/app/productos`, `/app/materias-primas`  | Listas y fichas (receta, costo estándar, movimientos); en la demo no se guarda nada     |
-| `/app/inventario`                         | Existencias, entradas, salidas y ajustes; `/app/inventario/movimientos` es el historial |
-| `/app/configuracion`                      | Datos de la fábrica y usuarios (no existe en la demo)                                   |
-| `/estilos`                                | Referencia interna del sistema de diseño                                                |
+| Ruta                                                               | Qué hay                                                                                 |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `/`                                                                | Landing pública con calculadora de materiales y el botón «Probar la demo»               |
+| `/demo`                                                            | Entra a la demo pública (sin cuenta, solo lectura) y lleva a `/app`                     |
+| `/ingresar`, `/recuperar`, `/restablecer`                          | Ingreso, recuperación y elección de contraseña (también para invitaciones)              |
+| `/auth/confirm`                                                    | Destino de los enlaces de email y de invitación                                         |
+| `/app`                                                             | Panel: con sesión (todo, con escritura) o con la demo pública (solo lectura)            |
+| `/app/productos`, `/app/materias-primas`                           | Listas y fichas (receta, costo estándar, movimientos); en la demo no se guarda nada     |
+| `/app/compras`, `/app/compras/[id]`                                | Lista y ficha de compras; confirmar, recibir mercadería y cancelar                      |
+| `/app/produccion`, `/app/produccion/nueva`, `/app/produccion/[id]` | Lista, nueva orden con vista previa y ficha con acciones y costos                       |
+| `/app/inventario`                                                  | Existencias, entradas, salidas y ajustes; `/app/inventario/movimientos` es el historial |
+| `/app/configuracion`                                               | Datos de la fábrica y usuarios (no existe en la demo)                                   |
+| `/estilos`                                                         | Referencia interna del sistema de diseño                                                |
 
 ## Scripts
 
@@ -90,6 +96,7 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 | `npm test`                    | Todos los tests: unitarios, componentes y base de datos                           |
 | `npm run test:db`             | Sólo las pruebas SQL (PGlite: migraciones, RLS, stock, compras, producción, demo) |
 | `npm run format`              | Prettier                                                                          |
+| `npm run capturas`            | Regenera `public/capturas/*.png` desde la demo (con `next start -p 3100` andando) |
 
 ## Estructura
 
@@ -103,7 +110,7 @@ src/
 supabase/
   migrations/     esquema versionado: núcleo, catálogo, inventario, compras, producción, storage, demo
   tests/          pruebas SQL con PGlite (shim.sql imita los roles y esquemas de Supabase)
-scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify
+scripts/          db, auth:config, fabrica:crear, demo:crear, demo:publica, db:verify, capturas
 docs/             plan técnico y planes de implementación
 ```
 

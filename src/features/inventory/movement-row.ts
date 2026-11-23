@@ -15,6 +15,8 @@ export type FeedRow = {
   reason: string | null;
   occurred_at: string;
   reference: string | null;
+  reference_type: string | null;
+  reference_id: string | null;
   reversible: boolean | null;
   reversed: boolean | null;
 };
@@ -34,6 +36,11 @@ export function toMovementRow(r: FeedRow): MovementRow {
     balanceAfter: r.balance_after === null ? null : Number(r.balance_after),
     reason: r.reason,
     reference: r.reference,
+    referenceType:
+      r.reference_type === "purchase_order" || r.reference_type === "production_order"
+        ? r.reference_type
+        : null,
+    referenceId: r.reference_id,
     reversible: Boolean(r.reversible),
     reversed: Boolean(r.reversed),
   };

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { alertHref, parseDashboardData } from "@/features/dashboard/data";
 import type {
   ActivityEntry,
@@ -23,7 +25,9 @@ export type DashboardView = {
  * Datos del tablero de una fábrica. La visibilidad la define la base (RLS / guarda de las funciones):
  * una fábrica que el usuario no puede ver devuelve todo en cero.
  */
-export async function getDashboard(orgId: string): Promise<DashboardView> {
+export const getDashboard = cache(async function getDashboard(
+  orgId: string,
+): Promise<DashboardView> {
   const supabase = await createClient();
   const [dashboard, activity] = await Promise.all([
     supabase.rpc("dashboard_data", { p_org: orgId }),
@@ -51,4 +55,4 @@ export async function getDashboard(orgId: string): Promise<DashboardView> {
       at: a.occurred_at,
     })),
   };
-}
+});

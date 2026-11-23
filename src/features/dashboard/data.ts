@@ -36,10 +36,7 @@ export function parseDashboardData(input: unknown): DashboardData {
   return dashboardDataSchema.parse(input);
 }
 
-/**
- * Destino de cada alerta. Las órdenes y compras llevan a su lista hasta que existan sus fichas
- * (bloque 4B).
- */
+/** Destino de cada alerta: la ficha del ítem, de la orden de producción o de la compra. */
 export function alertHref(
   a: Pick<RawAlert, "kind" | "entityType" | "entityId" | "itemType">,
 ): string {
@@ -48,5 +45,7 @@ export function alertHref(
       ? `/app/materias-primas/${a.entityId}`
       : `/app/productos/${a.entityId}`;
   }
-  return a.entityType === "production_order" ? "/app/produccion" : "/app/compras";
+  return a.entityType === "production_order"
+    ? `/app/produccion/${a.entityId}`
+    : `/app/compras/${a.entityId}`;
 }
