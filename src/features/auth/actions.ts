@@ -5,16 +5,23 @@ import { z } from "zod";
 
 import { loginSchema, recoverSchema, resetPasswordSchema } from "@/features/auth/schemas";
 import { createPublicAction } from "@/lib/actions";
+import { isLoginDisabled, LOGIN_DISABLED_MESSAGE } from "@/lib/auth/login-switch";
 import { safeNextPath } from "@/lib/auth/redirect";
 import { ActionError } from "@/lib/db-errors";
 import { getPublicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
+
+/** Segunda barrera (la primera es el proxy): con el ingreso deshabilitado ninguna acción de acceso corre. */
+function assertLoginEnabled() {
+  if (isLoginDisabled()) throw new ActionError(LOGIN_DISABLED_MESSAGE);
+}
 
 const RATE_LIMIT = "Hubo demasiados intentos. Esperá unos minutos y probá de nuevo.";
 
 export const signIn = createPublicAction({
   schema: loginSchema.extend({ next: z.string().max(500).optional() }),
   handler: async ({ email, password, next }) => {
+    assertLoginEnabled();
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
@@ -30,6 +37,7 @@ export const signIn = createPublicAction({
 export const requestPasswordReset = createPublicAction({
   schema: recoverSchema,
   handler: async ({ email }) => {
+    assertLoginEnabled();
     const supabase = await createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${getPublicEnv().siteUrl}/auth/confirm?next=/restablecer`,
@@ -45,6 +53,7 @@ export const requestPasswordReset = createPublicAction({
 export const updatePassword = createPublicAction({
   schema: resetPasswordSchema,
   handler: async ({ password }) => {
+    assertLoginEnabled();
     const supabase = await createClient();
     const { data } = await supabase.auth.getClaims();
     if (!data?.claims?.sub) throw new ActionError("El enlace venció o ya se usó. Pedí uno nuevo.");

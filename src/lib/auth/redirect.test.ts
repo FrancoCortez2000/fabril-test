@@ -69,3 +69,25 @@ describe("routeDecision en modo demo", () => {
     expect(routeDecision("/app", "", true, true)).toBeNull();
   });
 });
+
+describe("routeDecision con el ingreso deshabilitado (sitio público)", () => {
+  test.each(["/ingresar", "/recuperar", "/restablecer"])("%s manda a la landing", (path) => {
+    expect(routeDecision(path, "", false, false, true)).toEqual({ redirectTo: "/" });
+    expect(routeDecision(path, "?next=%2Fapp", true, true, true)).toEqual({ redirectTo: "/" });
+  });
+
+  test("sin sesión ni demo, el panel manda a la landing y no a un login que no existe", () => {
+    expect(routeDecision("/app", "", false, false, true)).toEqual({ redirectTo: "/" });
+    expect(routeDecision("/app/costos", "", false, false, true)).toEqual({ redirectTo: "/" });
+  });
+
+  test("la demo sigue entrando al panel", () => {
+    expect(routeDecision("/app", "", false, true, true)).toBeNull();
+    expect(routeDecision("/app/produccion", "?page=2", false, true, true)).toBeNull();
+  });
+
+  test("por defecto el ingreso está habilitado y nada cambia", () => {
+    expect(routeDecision("/ingresar", "", false)).toBeNull();
+    expect(routeDecision("/app", "", false)).toEqual({ redirectTo: "/ingresar?next=%2Fapp" });
+  });
+});

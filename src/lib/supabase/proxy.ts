@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { DEMO_COOKIE } from "@/lib/auth/demo";
+import { isLoginDisabled } from "@/lib/auth/login-switch";
 import { routeDecision } from "@/lib/auth/redirect";
 import { getPublicEnv } from "@/lib/env";
 
@@ -32,6 +33,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     request.nextUrl.search,
     Boolean(data?.claims?.sub),
     request.cookies.has(DEMO_COOKIE),
+    isLoginDisabled(),
   );
   if (!decision) return response;
 

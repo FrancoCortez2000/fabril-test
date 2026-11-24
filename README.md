@@ -86,7 +86,8 @@ La base ya vive en Supabase (la nube), así que sólo hay que publicar la app:
    Las variables `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD` son sólo para tus scripts locales: **no** van a Vercel.
 
 3. Desplegá. Después, con `NEXT_PUBLIC_SITE_URL` apuntando a esa dirección en tu `.env.local`, corré una vez `npm run auth:config` para que los enlaces de los emails (recuperar contraseña, invitaciones) vuelvan al sitio publicado.
-4. Probá `/` (landing), el botón «Probar la demo» y `/ingresar`.
+4. Para un sitio público de portfolio, agregá también `LOGIN_DISABLED=1` en Vercel. Con eso `/ingresar`, `/recuperar` y `/restablecer` redirigen a la landing y no se puede iniciar sesión desde internet: queda sólo la demo de solo lectura. En tu máquina no pongas la variable y seguís entrando con tu cuenta (contra la misma base de Supabase).
+5. Probá `/` (landing) y el botón «Probar la demo». Con `LOGIN_DISABLED=1`, `/ingresar` te devuelve a la landing.
 
 Si cambiás el dominio, actualizá `NEXT_PUBLIC_SITE_URL` en Vercel y volvé a correr `npm run auth:config`.
 

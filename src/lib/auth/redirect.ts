@@ -1,3 +1,5 @@
+import { LOGIN_PATHS } from "@/lib/auth/login-switch";
+
 const LOCAL_ORIGIN = "http://fabril.invalid";
 
 /**
@@ -31,7 +33,13 @@ export function routeDecision(
   search: string,
   isAuthenticated: boolean,
   demoMode = false,
+  loginDisabled = false,
 ): { redirectTo: string } | null {
+  // Sitio público sin ingreso: no hay pantalla de acceso a la que mandar a nadie.
+  if (loginDisabled) {
+    if ((LOGIN_PATHS as readonly string[]).includes(pathname)) return { redirectTo: "/" };
+    if (!isAuthenticated && !demoMode && isPanel(pathname)) return { redirectTo: "/" };
+  }
   if (!isAuthenticated && !demoMode && isPanel(pathname)) {
     return { redirectTo: `/ingresar?next=${encodeURIComponent(pathname + search)}` };
   }
