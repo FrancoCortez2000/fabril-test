@@ -2,7 +2,7 @@
 
 Sistema de gestión integral para pequeñas y medianas fábricas: producción, inventario, recetas (BOM), compras, empleados, costos y reportes.
 
-> **Estado:** Etapa 4 completa. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`) y funcionan sobre la base real el Dashboard (con la campana de alertas), Productos, Materias primas (con recetas y costo estándar), Inventario, **Compras** (confirmar, recibir, cancelar), **Producción** (nueva orden con vista previa de materiales; iniciar, registrar avance, completar, cancelar y crear compra con faltantes; costo planificado vs. real) y Configuración. Quedan para retoques: carga de horas y consumos reales al completar, devoluciones al cancelar y asignar personal a la orden. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
+> **Estado:** Etapa 4 completa. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`) y funcionan sobre la base real el Dashboard (con la campana de alertas), Productos, Materias primas (con recetas y costo estándar), Inventario, **Compras** (confirmar, recibir, cancelar), **Producción** (nueva orden con vista previa de materiales; iniciar, registrar avance, completar, cancelar y crear compra con faltantes; costo planificado vs. real), **Costos** (costo estándar y margen por producto, planificado vs. real), **Empleados** (alta y edición), un **buscador global** (Ctrl+K), **exportación a CSV** (Inventario, Costos y Producción) y Configuración. Ideas para retoques: pantalla de Proveedores, Reportes con gráficos propios, ficha de empleado, asignar personal y cargar horas reales a la orden, consumos reales y devoluciones al completar o cancelar. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
 
 ## Stack
 
@@ -81,6 +81,8 @@ Las imágenes de la landing salen de la demo pública. Para regenerarlas: `npm r
 | `/app/productos`, `/app/materias-primas`                           | Listas y fichas (receta, costo estándar, movimientos); en la demo no se guarda nada     |
 | `/app/compras`, `/app/compras/[id]`                                | Lista y ficha de compras; confirmar, recibir mercadería y cancelar                      |
 | `/app/produccion`, `/app/produccion/nueva`, `/app/produccion/[id]` | Lista, nueva orden con vista previa y ficha con acciones y costos                       |
+| `/app/costos`, `/app/empleados`                                    | Costos por producto y desvíos; lista de empleados con alta y edición                    |
+| `/app/buscar?q=`, `/app/{inventario,costos,produccion}/exportar`   | Búsqueda global (JSON) y descargas CSV; funcionan también en la demo (solo lectura)     |
 | `/app/inventario`                                                  | Existencias, entradas, salidas y ajustes; `/app/inventario/movimientos` es el historial |
 | `/app/configuracion`                                               | Datos de la fábrica y usuarios (no existe en la demo)                                   |
 | `/estilos`                                                         | Referencia interna del sistema de diseño                                                |
