@@ -69,6 +69,27 @@ Dentro del panel, **Configuración → Usuarios** invita a más personas con un 
 
 Las imágenes de la landing salen de la demo pública. Para regenerarlas: `npm run build`, `npx next start -p 3100` en otra terminal y `npm run capturas` (necesita Chromium: `npx playwright install chromium`).
 
+## Despliegue en Vercel
+
+La base ya vive en Supabase (la nube), así que sólo hay que publicar la app:
+
+1. Subí el repositorio a GitHub e importalo en [vercel.com/new](https://vercel.com/new). Vercel detecta Next.js solo (comando `npm run build`, Node 22 o superior).
+2. En _Settings → Environment Variables_ cargá estas cuatro variables para _Production_ (los mismos valores de tu `.env.local`):
+
+   | Variable                               | Nota                                                             |
+   | -------------------------------------- | ---------------------------------------------------------------- |
+   | `NEXT_PUBLIC_SUPABASE_URL`             | URL del proyecto de Supabase                                     |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave publicable (`sb_publishable_…`): es pública                |
+   | `SUPABASE_SECRET_KEY`                  | Clave secreta (`sb_secret_…`): sólo servidor, nunca pública      |
+   | `NEXT_PUBLIC_SITE_URL`                 | La dirección pública que te da Vercel, ej. `https://…vercel.app` |
+
+   Las variables `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD` son sólo para tus scripts locales: **no** van a Vercel.
+
+3. Desplegá. Después, con `NEXT_PUBLIC_SITE_URL` apuntando a esa dirección en tu `.env.local`, corré una vez `npm run auth:config` para que los enlaces de los emails (recuperar contraseña, invitaciones) vuelvan al sitio publicado.
+4. Probá `/` (landing), el botón «Probar la demo» y `/ingresar`.
+
+Si cambiás el dominio, actualizá `NEXT_PUBLIC_SITE_URL` en Vercel y volvé a correr `npm run auth:config`.
+
 ## Rutas
 
 | Ruta                                                               | Qué hay                                                                                 |
@@ -89,16 +110,17 @@ Las imágenes de la landing salen de la demo pública. Para regenerarlas: `npm r
 
 ## Scripts
 
-| Comando                       | Para qué                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| `npm run dev`                 | Servidor de desarrollo                                                            |
-| `npm run build` / `npm start` | Compilación y servidor de producción                                              |
-| `npm run typecheck`           | Tipos de rutas de Next y `tsc`                                                    |
-| `npm run lint`                | ESLint                                                                            |
-| `npm test`                    | Todos los tests: unitarios, componentes y base de datos                           |
-| `npm run test:db`             | Sólo las pruebas SQL (PGlite: migraciones, RLS, stock, compras, producción, demo) |
-| `npm run format`              | Prettier                                                                          |
-| `npm run capturas`            | Regenera `public/capturas/*.png` desde la demo (con `next start -p 3100` andando) |
+| Comando                                      | Para qué                                                                                                             |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                                | Servidor de desarrollo                                                                                               |
+| `npm run build` / `npm start`                | Compilación y servidor de producción                                                                                 |
+| `npm run typecheck`                          | Tipos de rutas de Next y `tsc`                                                                                       |
+| `npm run lint`                               | ESLint                                                                                                               |
+| `npm test`                                   | Todos los tests: unitarios, componentes y base de datos                                                              |
+| `npm run test:db`                            | Sólo las pruebas SQL (PGlite: migraciones, RLS, stock, compras, producción, demo)                                    |
+| `npm run format`                             | Prettier                                                                                                             |
+| `node scripts/revision-visual.mts <carpeta>` | Recorre las pantallas a 360/768/1280 px en claro y oscuro: avisa de desbordes y errores de consola y guarda capturas |
+| `npm run capturas`                           | Regenera `public/capturas/*.png` desde la demo (con `next start -p 3100` andando)                                    |
 
 ## Estructura
 
