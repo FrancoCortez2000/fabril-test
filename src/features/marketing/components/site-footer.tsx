@@ -33,11 +33,6 @@ export function SiteFooter() {
                 Probar la demo
               </Link>
             </li>
-            <li>
-              <Link href="/ingresar" className="text-muted-foreground hover:text-foreground">
-                Ingresar
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>

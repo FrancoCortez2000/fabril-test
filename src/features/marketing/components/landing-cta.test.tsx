@@ -42,6 +42,27 @@ test("la sección de cierre invita a recorrer la demo sin formulario", () => {
   expect(screen.getByText(/solo lectura/i)).toBeVisible();
 });
 
+test("la landing no ofrece ingresar con usuario: la demo es abierta", () => {
+  const { container } = render(
+    <>
+      <SiteHeader />
+      <Hero />
+      <DemoSection />
+      <SiteFooter />
+    </>,
+  );
+  expect(container.querySelector('a[href="/ingresar"]')).toBeNull();
+  expect(screen.queryByText(/Ingresar|Ingresá|¿Ya tenés usuario\?/)).toBeNull();
+  expectDemoLink();
+});
+
+test("el encabezado muestra «Probar la demo» también en pantallas chicas", () => {
+  render(<SiteHeader />);
+  for (const link of screen.getAllByRole("link", { name: "Probar la demo" })) {
+    expect(link.className).not.toMatch(/\bhidden\b/);
+  }
+});
+
 describe("contenido", () => {
   test("los módulos coinciden con lo que existe en la demo", () => {
     expect(MODULES.map((m) => m.title)).toEqual([

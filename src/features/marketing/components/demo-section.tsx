@@ -21,16 +21,6 @@ export function DemoSection() {
             </Link>
           </Button>
         </div>
-        <p className="mt-6 text-muted-foreground">
-          ¿Ya tenés usuario?{" "}
-          <Link
-            href="/ingresar"
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            Ingresá al sistema
-          </Link>
-          .
-        </p>
       </div>
     </section>
   );

@@ -23,10 +23,7 @@ export function SiteHeader() {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <Link href="/ingresar">Ingresar</Link>
-          </Button>
-          <Button asChild className="hidden sm:inline-flex">
+          <Button asChild>
             <Link href="/demo" prefetch={false}>
               Probar la demo
             </Link>
