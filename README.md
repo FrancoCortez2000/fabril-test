@@ -1,5 +1,7 @@
 # FABRIL
 
+**Demo en vivo: [fabril-test.vercel.app](https://fabril-test.vercel.app)** (sin usuario ni contraseña, solo lectura)
+
 Sistema de gestión integral para pequeñas y medianas fábricas: producción, inventario, recetas (BOM), compras, empleados, costos y reportes.
 
 > **Estado:** Etapa 4 completa. Hay una **demo pública sin cuenta y de solo lectura** (`/demo`) y funcionan sobre la base real el Dashboard (con la campana de alertas), Productos, Materias primas (con recetas y costo estándar), Inventario, **Compras** (confirmar, recibir, cancelar), **Producción** (nueva orden con vista previa de materiales; iniciar, registrar avance, completar, cancelar y crear compra con faltantes; costo planificado vs. real), **Costos** (costo estándar y margen por producto, planificado vs. real), **Empleados** (alta y edición), un **buscador global** (Ctrl+K), **exportación a CSV** (Inventario, Costos y Producción) y Configuración. Ideas para retoques: pantalla de Proveedores, Reportes con gráficos propios, ficha de empleado, asignar personal y cargar horas reales a la orden, consumos reales y devoluciones al completar o cancelar. Plan completo: [`docs/plan-tecnico.md`](docs/plan-tecnico.md); diseño de la etapa: [`docs/superpowers/specs/2026-11-22-etapa-4-design.md`](docs/superpowers/specs/2026-11-22-etapa-4-design.md).
@@ -85,11 +87,11 @@ La base ya vive en Supabase (la nube), así que sólo hay que publicar la app:
 
    Las variables `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN` y `SUPABASE_DB_PASSWORD` son sólo para tus scripts locales: **no** van a Vercel.
 
-3. Desplegá. Después, con `NEXT_PUBLIC_SITE_URL` apuntando a esa dirección en tu `.env.local`, corré una vez `npm run auth:config` para que los enlaces de los emails (recuperar contraseña, invitaciones) vuelvan al sitio publicado.
+3. Desplegá. `NEXT_PUBLIC_SITE_URL` sólo se usa para los enlaces de los emails de Auth (recuperar contraseña, invitaciones): con `LOGIN_DISABLED=1` (paso siguiente) esos flujos no existen online, así que **no hace falta** correr `npm run auth:config` contra el dominio público.
 4. Para un sitio público de portfolio, agregá también `LOGIN_DISABLED=1` en Vercel. Con eso `/ingresar`, `/recuperar` y `/restablecer` redirigen a la landing y no se puede iniciar sesión desde internet: queda sólo la demo de solo lectura. En tu máquina no pongas la variable y seguís entrando con tu cuenta (contra la misma base de Supabase).
 5. Probá `/` (landing) y el botón «Probar la demo». Con `LOGIN_DISABLED=1`, `/ingresar` te devuelve a la landing.
 
-Si cambiás el dominio, actualizá `NEXT_PUBLIC_SITE_URL` en Vercel y volvé a correr `npm run auth:config`.
+Si más adelante habilitás el ingreso online (sin `LOGIN_DISABLED`), poné en `NEXT_PUBLIC_SITE_URL` el dominio real y corré `npm run auth:config` una vez, para que los enlaces de los emails vuelvan al sitio publicado.
 
 ## Rutas
 
