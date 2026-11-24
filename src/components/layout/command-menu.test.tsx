@@ -99,6 +99,27 @@ describe("búsqueda de registros", () => {
     expect(screen.getByRole("option", { name: /Inventario/ })).toBeVisible();
   });
 
+  test("con resultados no aparece 'No hay coincidencias.'", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ hits: HITS }) });
+    await userEvent.type(await open(), "balde");
+    await screen.findByRole("option", { name: /Balde 10 L rojo/ });
+    expect(screen.queryByText("No hay coincidencias.")).toBeNull();
+  });
+
+  test("Enter abre el primer resultado sin tener que bajar con la flecha", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ hits: HITS }) });
+    await userEvent.type(await open(), "balde");
+    await screen.findByRole("option", { name: /Balde 10 L rojo/ });
+    await userEvent.keyboard("{Enter}");
+    expect(push).toHaveBeenCalledWith("/app/productos/p1");
+  });
+
+  test("los módulos se filtran por lo escrito, sin tildes ni mayúsculas", async () => {
+    await userEvent.type(await open(), "PRODUCCION");
+    expect(await screen.findByRole("option", { name: /Producción/ })).toBeVisible();
+    expect(screen.queryByRole("option", { name: /Inventario/ })).toBeNull();
+  });
+
   test("sin resultados dice que no hay coincidencias", async () => {
     await userEvent.type(await open(), "zzzz");
     expect(await screen.findByText("No hay coincidencias.")).toBeVisible();

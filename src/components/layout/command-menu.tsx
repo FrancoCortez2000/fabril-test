@@ -27,7 +27,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import type { SearchHit } from "@/features/search/queries";
 import { navItemsFor } from "@/lib/navigation";
@@ -39,6 +38,9 @@ const GROUPS: { kind: SearchHit["kind"]; heading: string; icon: LucideIcon }[] =
   { kind: "purchase", heading: "Compras", icon: ShoppingCart },
 ];
 const MIN_TERM = 2;
+
+/** Minúsculas y sin tildes, para comparar lo escrito con las etiquetas. */
+const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 
 /**
  * Menú de comandos (Ctrl/⌘ + K): navegar entre módulos y acciones rápidas.
@@ -90,6 +92,42 @@ export function CommandMenu() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  type Entry = { label: string; icon: LucideIcon; run: () => void };
+  const entries: { heading: string; items: Entry[] }[] = [
+    {
+      heading: "Acciones",
+      items: [
+        {
+          label: "Nuevo producto",
+          icon: PackagePlus,
+          run: () => router.push("/app/productos?nuevo=1"),
+        },
+      ],
+    },
+    {
+      heading: "Ir a",
+      items: navItemsFor(mode).map((item) => ({
+        label: item.label,
+        icon: item.icon,
+        run: () => router.push(item.href),
+      })),
+    },
+    {
+      heading: "Tema",
+      items: [
+        { label: "Tema claro", icon: Sun, run: () => setTheme("light") },
+        { label: "Tema oscuro", icon: Moon, run: () => setTheme("dark") },
+        { label: "Tema del sistema", icon: Monitor, run: () => setTheme("system") },
+      ],
+    },
+  ];
+  // Sin filtrado automático de cmdk: módulos y acciones se filtran acá (sin tildes ni mayúsculas) y
+  // los registros llegan ya filtrados del servidor.
+  const needle = normalize(term);
+  const groups = entries
+    .map((g) => ({ ...g, items: g.items.filter((i) => normalize(i.label).includes(needle)) }))
+    .filter((g) => g.items.length > 0);
+
   function run(action: () => void) {
     setOpen(false);
     action();
@@ -114,7 +152,7 @@ export function CommandMenu() {
         title="Buscar en FABRIL"
         description="Ir a un módulo o ejecutar una acción"
       >
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Escribí un módulo o una acción…"
             value={term}
@@ -126,12 +164,11 @@ export function CommandMenu() {
               const group = hits.filter((h) => h.kind === kind);
               if (group.length === 0) return null;
               return (
-                <CommandGroup key={kind} heading={heading} forceMount>
+                <CommandGroup key={kind} heading={heading}>
                   {group.map((h) => (
                     <CommandItem
                       key={`${kind}-${h.id}`}
                       value={`${kind}-${h.id}`}
-                      forceMount
                       onSelect={() => run(() => router.push(h.href))}
                     >
                       <Icon aria-hidden />
@@ -142,36 +179,16 @@ export function CommandMenu() {
                 </CommandGroup>
               );
             })}
-            <CommandGroup heading="Acciones">
-              <CommandItem onSelect={() => run(() => router.push("/app/productos?nuevo=1"))}>
-                <PackagePlus aria-hidden />
-                Nuevo producto
-              </CommandItem>
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup heading="Ir a">
-              {navItemsFor(mode).map((item) => (
-                <CommandItem key={item.href} onSelect={() => run(() => router.push(item.href))}>
-                  <item.icon aria-hidden />
-                  {item.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup heading="Tema">
-              <CommandItem onSelect={() => run(() => setTheme("light"))}>
-                <Sun aria-hidden />
-                Tema claro
-              </CommandItem>
-              <CommandItem onSelect={() => run(() => setTheme("dark"))}>
-                <Moon aria-hidden />
-                Tema oscuro
-              </CommandItem>
-              <CommandItem onSelect={() => run(() => setTheme("system"))}>
-                <Monitor aria-hidden />
-                Tema del sistema
-              </CommandItem>
-            </CommandGroup>
+            {groups.map(({ heading, items }) => (
+              <CommandGroup key={heading} heading={heading}>
+                {items.map(({ label, icon: Icon, run: action }) => (
+                  <CommandItem key={label} value={label} onSelect={() => run(action)}>
+                    <Icon aria-hidden />
+                    {label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
           </CommandList>
         </Command>
       </CommandDialog>
