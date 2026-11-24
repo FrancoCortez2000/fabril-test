@@ -20,13 +20,15 @@ test("respeta el orden de módulos acordado", () => {
     "Productos",
     "Materias primas",
     "Compras",
+    "Costos",
+    "Empleados",
     "Configuración",
   ]);
 });
 
-test("no quedan Proveedores, Empleados, Costos ni Reportes en el menú", () => {
+test("no hay todavía Proveedores ni Reportes en el menú", () => {
   const labels = NAV_ITEMS.map((i) => i.label);
-  for (const removed of ["Proveedores", "Empleados", "Costos", "Reportes"]) {
+  for (const removed of ["Proveedores", "Reportes"]) {
     expect(labels).not.toContain(removed);
   }
 });
@@ -48,6 +50,8 @@ describe("navItemsFor", () => {
       "Productos",
       "Materias primas",
       "Compras",
+      "Costos",
+      "Empleados",
     ]);
   });
 

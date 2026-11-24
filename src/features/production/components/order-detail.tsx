@@ -11,21 +11,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { actualTotal, costVariance, plannedTotal } from "@/features/production/costs";
+import { Variance } from "@/features/production/components/variance";
+import { actualTotal, plannedTotal } from "@/features/production/costs";
 import {
   PRIORITY_LABELS,
   type OrderDetailData,
   type ProductionStatus,
 } from "@/features/production/types";
 import { PRODUCTION_STATUS } from "@/lib/domain/status";
-import {
-  formatCurrency,
-  formatDate,
-  formatNumber,
-  formatPercent,
-  formatQuantity,
-} from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { formatCurrency, formatDate, formatNumber, formatQuantity } from "@/lib/format";
 
 const ROLE_LABELS: Record<string, string> = {
   responsable: "Responsable",
@@ -48,20 +42,6 @@ function Section({ label, children }: { label: string; children: React.ReactNode
       <h2 className="text-sm font-semibold">{label}</h2>
       {children}
     </section>
-  );
-}
-
-/** Desvío dicho con palabras (no sólo con color): "$ 10.000,00 más caro (+10 %)". */
-function Variance({ planned, actual }: { planned: number; actual: number | null }) {
-  const v = costVariance(planned, actual);
-  if (!v) return <span className="text-muted-foreground">—</span>;
-  if (v.amount === 0) return <span className="text-muted-foreground">Sin desvío</span>;
-  const dearer = v.amount > 0;
-  return (
-    <span className={cn(dearer ? "text-status-delayed" : "text-status-completed")}>
-      {formatCurrency(Math.abs(v.amount))} {dearer ? "más caro" : "más barato"}
-      {v.pct === null ? "" : ` (${dearer ? "+" : "-"}${formatPercent(Math.abs(v.pct))})`}
-    </span>
   );
 }
 
