@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { ExportButton } from "@/components/data/export-button";
 import { PageHeader } from "@/components/data/page-header";
 import { Button } from "@/components/ui/button";
 import { StockList, StockListSkeleton } from "@/features/inventory/components/stock-list";
@@ -16,12 +17,15 @@ export default function InventarioPage(props: PageProps<"/app/inventario">) {
         title="Inventario"
         description="Existencias, entradas, salidas y ajustes con trazabilidad completa."
         actions={
-          <Button variant="outline" asChild>
-            <Link href="/app/inventario/movimientos">
-              <History aria-hidden />
-              Ver movimientos
-            </Link>
-          </Button>
+          <>
+            <ExportButton href="/app/inventario/exportar" />
+            <Button variant="outline" asChild>
+              <Link href="/app/inventario/movimientos">
+                <History aria-hidden />
+                Ver movimientos
+              </Link>
+            </Button>
+          </>
         }
       />
       <Suspense fallback={<StockListSkeleton />}>

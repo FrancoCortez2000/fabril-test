@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ClipboardPlus } from "lucide-react";
 import Link from "next/link";
 
+import { ExportButton } from "@/components/data/export-button";
 import { PageHeader } from "@/components/data/page-header";
 import { Button } from "@/components/ui/button";
 import { OrdersList, OrdersListSkeleton } from "@/features/production/components/orders-list";
@@ -17,12 +18,15 @@ export default function ProduccionPage(props: PageProps<"/app/produccion">) {
         title="Producción"
         description="Órdenes de producción: avance, materiales, personal y costo planificado contra el real."
         actions={
-          <Button asChild>
-            <Link href="/app/produccion/nueva">
-              <ClipboardPlus aria-hidden />
-              Nueva orden
-            </Link>
-          </Button>
+          <>
+            <ExportButton href="/app/produccion/exportar" />
+            <Button asChild>
+              <Link href="/app/produccion/nueva">
+                <ClipboardPlus aria-hidden />
+                Nueva orden
+              </Link>
+            </Button>
+          </>
         }
       />
       <Suspense fallback={<OrdersListSkeleton />}>
