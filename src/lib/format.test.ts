@@ -79,6 +79,20 @@ describe("formatDateTime", () => {
   });
 });
 
+describe("formatRelative: nunca habla en futuro", () => {
+  const now = new Date("2026-11-20T23:59:59-03:00");
+  test("un momento posterior a la referencia es «recién», no «en 3 días»", () => {
+    expect(formatRelative(new Date(now.getTime() + 3 * 86_400_000), now)).toBe("recién");
+  });
+  test("menos de un minuto es «recién», no «hace 0 segundos»", () => {
+    expect(formatRelative(now, now)).toBe("recién");
+    expect(formatRelative(new Date(now.getTime() - 30_000), now)).toBe("recién");
+  });
+  test("un minuto o más sigue relativo", () => {
+    expect(formatRelative(new Date(now.getTime() - 60_000), now)).toBe("hace 1 minuto");
+  });
+});
+
 describe("formatRelative", () => {
   test("describe el tiempo transcurrido en español", () => {
     const now = new Date("2026-11-09T12:00:00Z");

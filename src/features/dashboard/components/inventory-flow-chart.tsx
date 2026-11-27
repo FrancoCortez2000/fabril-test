@@ -42,57 +42,59 @@ export function InventoryFlowChart({
         </div>
       }
       chart={
-        <div className="h-64 w-full">
-          <ResponsiveContainer>
-            <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} />
-              <XAxis
-                dataKey="label"
-                tick={AXIS_TICK}
-                tickLine={false}
-                axisLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                width={64}
-                tick={AXIS_TICK}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v: number) => formatCompactCurrency(v)}
-              />
-              <Tooltip
-                cursor={{ stroke: CHART_COLORS.axis, strokeWidth: 1, strokeDasharray: "3 3" }}
-                content={({ active, payload }) => {
-                  const p = payload?.[0]?.payload as (typeof rows)[number] | undefined;
-                  if (!active || !p) return null;
-                  return (
-                    <ChartTooltipBox title={formatMonth(p.month, "long")}>
-                      {SERIES.map((s) => (
-                        <TooltipRow
-                          key={s.key}
-                          color={s.color}
-                          label={s.label}
-                          value={formatCompactCurrency(p[s.key])}
-                        />
-                      ))}
-                    </ChartTooltipBox>
-                  );
-                }}
-              />
-              {SERIES.map((s) => (
-                <Line
-                  key={s.key}
-                  type="monotone"
-                  dataKey={s.key}
-                  name={s.label}
-                  stroke={s.color}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)" }}
+        <div className="relative h-64 w-full lg:h-auto lg:min-h-64 lg:flex-1">
+          <div className="absolute inset-0">
+            <ResponsiveContainer>
+              <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} />
+                <XAxis
+                  dataKey="label"
+                  tick={AXIS_TICK}
+                  tickLine={false}
+                  axisLine={false}
+                  interval="preserveStartEnd"
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+                <YAxis
+                  width={64}
+                  tick={AXIS_TICK}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) => formatCompactCurrency(v)}
+                />
+                <Tooltip
+                  cursor={{ stroke: CHART_COLORS.axis, strokeWidth: 1, strokeDasharray: "3 3" }}
+                  content={({ active, payload }) => {
+                    const p = payload?.[0]?.payload as (typeof rows)[number] | undefined;
+                    if (!active || !p) return null;
+                    return (
+                      <ChartTooltipBox title={formatMonth(p.month, "long")}>
+                        {SERIES.map((s) => (
+                          <TooltipRow
+                            key={s.key}
+                            color={s.color}
+                            label={s.label}
+                            value={formatCompactCurrency(p[s.key])}
+                          />
+                        ))}
+                      </ChartTooltipBox>
+                    );
+                  }}
+                />
+                {SERIES.map((s) => (
+                  <Line
+                    key={s.key}
+                    type="monotone"
+                    dataKey={s.key}
+                    name={s.label}
+                    stroke={s.color}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)" }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       }
       table={

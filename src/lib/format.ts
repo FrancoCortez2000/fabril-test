@@ -104,9 +104,11 @@ export function formatMonth(month: string, style: "short" | "long"): string {
   return style === "short" ? name.slice(0, 3) : `${name} de ${year}`;
 }
 
-/** `hace 5 minutos`. */
+/** `hace 5 minutos`. Nunca habla en futuro: lo posterior a `now` o de menos de un minuto es "recién". */
 export function formatRelative(value: string | Date, now: Date = new Date()): string {
-  return formatDistanceStrict(toDate(value), now, { addSuffix: true, locale: es });
+  const date = toDate(value);
+  if (now.getTime() - date.getTime() < 60_000) return "recién";
+  return formatDistanceStrict(date, now, { addSuffix: true, locale: es });
 }
 
 const COMMA_DECIMAL = /^-?(\d{1,3}(\.\d{3})+|\d+),\d+$/;

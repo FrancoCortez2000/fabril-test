@@ -10,6 +10,7 @@ import { ProductionChart } from "@/features/dashboard/components/production-char
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
 import { RecentActivity } from "@/features/dashboard/components/recent-activity";
 import { getDashboard } from "@/features/dashboard/queries";
+import { referenceTime } from "@/features/dashboard/reference-time";
 import { requireSession } from "@/lib/auth/session";
 import { formatDate } from "@/lib/format";
 
@@ -20,8 +21,12 @@ async function DashboardContent() {
   const data = await getDashboard(session.activeOrganizationId);
   const currentMonth = data.asOf.slice(0, 7);
   const isDemo = session.organizations.find((o) => o.id === session.activeOrganizationId)?.isDemo;
-  // En una demo con datos viejos los tiempos relativos se miden contra el final del día de "asOf".
-  const now = isDemo ? new Date(`${data.asOf}T23:59:59-03:00`) : new Date();
+  const now = referenceTime({
+    isDemo: Boolean(isDemo),
+    asOf: data.asOf,
+    activity: data.activity,
+    realNow: new Date(),
+  });
 
   return (
     <>

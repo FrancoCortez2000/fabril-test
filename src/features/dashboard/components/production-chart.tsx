@@ -38,64 +38,67 @@ export function ProductionChart({
           : "Unidades buenas por mes"
       }
       chart={
-        <div className="h-64 w-full lg:h-80">
-          <ResponsiveContainer>
-            <BarChart
-              data={rows}
-              margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
-              barCategoryGap={6}
-            >
-              <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} />
-              <XAxis
-                dataKey="label"
-                tick={AXIS_TICK}
-                tickLine={false}
-                axisLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                width={44}
-                tick={AXIS_TICK}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v: number) =>
-                  v >= 1000 ? `${formatNumber(v / 1000)} mil` : formatNumber(v)
-                }
-              />
-              <Tooltip
-                cursor={{ fill: "var(--accent)" }}
-                content={({ active, payload }) => {
-                  const p = payload?.[0]?.payload as (typeof rows)[number] | undefined;
-                  if (!active || !p) return null;
-                  const isCurrent = p.month === currentMonth;
-                  return (
-                    <ChartTooltipBox
-                      title={`${formatMonth(p.month, "long")}${isCurrent ? " (en curso)" : ""}`}
-                    >
-                      <TooltipRow
-                        color={isCurrent ? CHART_COLORS.highlight : CHART_COLORS.neutral}
-                        label="Unidades"
-                        value={formatNumber(p.units)}
+        <div className="relative h-64 w-full lg:h-auto lg:min-h-80 lg:flex-1">
+          {/* Posición absoluta: el contenedor mide el alto real de la tarjeta, no el del contenido. */}
+          <div className="absolute inset-0">
+            <ResponsiveContainer>
+              <BarChart
+                data={rows}
+                margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+                barCategoryGap={6}
+              >
+                <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} />
+                <XAxis
+                  dataKey="label"
+                  tick={AXIS_TICK}
+                  tickLine={false}
+                  axisLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  width={44}
+                  tick={AXIS_TICK}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v: number) =>
+                    v >= 1000 ? `${formatNumber(v / 1000)} mil` : formatNumber(v)
+                  }
+                />
+                <Tooltip
+                  cursor={{ fill: "var(--accent)" }}
+                  content={({ active, payload }) => {
+                    const p = payload?.[0]?.payload as (typeof rows)[number] | undefined;
+                    if (!active || !p) return null;
+                    const isCurrent = p.month === currentMonth;
+                    return (
+                      <ChartTooltipBox
+                        title={`${formatMonth(p.month, "long")}${isCurrent ? " (en curso)" : ""}`}
+                      >
+                        <TooltipRow
+                          color={isCurrent ? CHART_COLORS.highlight : CHART_COLORS.neutral}
+                          label="Unidades"
+                          value={formatNumber(p.units)}
+                        />
+                      </ChartTooltipBox>
+                    );
+                  }}
+                />
+                <Bar dataKey="units" radius={[4, 4, 0, 0]} maxBarSize={36}>
+                  {rows.map((r) => {
+                    const isCurrent = r.month === currentMonth;
+                    return (
+                      <Cell
+                        key={r.month}
+                        fill={isCurrent ? CHART_COLORS.highlight : CHART_COLORS.neutral}
+                        stroke={isCurrent ? CHART_COLORS.highlightStroke : "none"}
+                        strokeWidth={isCurrent ? 1 : 0}
                       />
-                    </ChartTooltipBox>
-                  );
-                }}
-              />
-              <Bar dataKey="units" radius={[4, 4, 0, 0]} maxBarSize={36}>
-                {rows.map((r) => {
-                  const isCurrent = r.month === currentMonth;
-                  return (
-                    <Cell
-                      key={r.month}
-                      fill={isCurrent ? CHART_COLORS.highlight : CHART_COLORS.neutral}
-                      stroke={isCurrent ? CHART_COLORS.highlightStroke : "none"}
-                      strokeWidth={isCurrent ? 1 : 0}
-                    />
-                  );
-                })}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                    );
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       }
       table={
