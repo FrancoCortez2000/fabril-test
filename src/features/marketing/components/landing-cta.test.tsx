@@ -74,6 +74,16 @@ describe("contenido", () => {
     ]);
   });
 
+  test("las preguntas no repiten lo que ya dice la landing", () => {
+    const questions = FAQ.map((f) => f.q);
+    expect(questions).toHaveLength(4);
+    // la seguridad ya está en «Cómo está hecho»; lo de instalar, en la del celular
+    expect(questions).not.toContain("¿Mis datos están seguros?");
+    expect(questions).not.toContain("¿Tengo que instalar algo?");
+    const mobile = FAQ.find((f) => f.q === "¿Funciona en el celular?");
+    expect(mobile?.a).toMatch(/sin instalar nada/);
+  });
+
   test("no promete proveedores, reportes, CSV ni importación desde Excel", () => {
     const text = JSON.stringify({ MODULES, FAQ });
     expect(text).not.toMatch(/proveedores|reportes|csv|excel|planilla/i);

@@ -4,6 +4,7 @@ import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { metadataBase } from "@/lib/metadata-base";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -22,6 +23,11 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: metadataBase({
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  }),
+  twitter: { card: "summary_large_image" },
   title: {
     default: "FABRIL — Gestión de producción para pequeñas fábricas",
     template: "%s · FABRIL",

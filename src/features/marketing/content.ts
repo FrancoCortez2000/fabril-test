@@ -112,10 +112,6 @@ export const MODULES: ModuleFeature[] = [
 
 export const FAQ = [
   {
-    q: "¿Mis datos están seguros?",
-    a: "Cada fábrica tiene sus datos aislados del resto: nadie de otra empresa puede verlos. Las conexiones van cifradas y los registros de stock no se pueden modificar sin dejar rastro.",
-  },
-  {
     q: "¿Sirve si no fabrico plásticos?",
     a: "Sí. La demostración usa una fábrica de plásticos, pero el sistema funciona con cualquier producto que se arme a partir de materias primas: alimentos, química, metalúrgica liviana, textil y más.",
   },
@@ -125,15 +121,11 @@ export const FAQ = [
   },
   {
     q: "¿Funciona en el celular?",
-    a: "Sí. Funciona en el navegador de cualquier computadora, tablet o celular, así se pueden registrar avances y recepciones desde la planta.",
+    a: "Sí. Funciona en el navegador de cualquier computadora, tablet o celular, sin instalar nada, así se pueden registrar avances y recepciones desde la planta.",
   },
   {
     q: "¿Puedo probarlo sin registrarme?",
     a: "Sí. Con el botón Probar la demo entrás a una fábrica de ejemplo, sin cuenta y de solo lectura: podés abrir todas las pantallas sin modificar nada.",
-  },
-  {
-    q: "¿Tengo que instalar algo?",
-    a: "No. FABRIL funciona en el navegador; sólo necesitás conexión a internet y tu usuario.",
   },
 ] as const;
 
