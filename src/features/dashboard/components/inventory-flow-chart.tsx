@@ -42,7 +42,7 @@ export function InventoryFlowChart({
         </div>
       }
       chart={
-        <div className="relative h-64 w-full lg:h-auto lg:min-h-64 lg:flex-1">
+        <div className="relative h-64 w-full lg:h-72">
           <div className="absolute inset-0">
             <ResponsiveContainer>
               <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>

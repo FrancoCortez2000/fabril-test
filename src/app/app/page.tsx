@@ -43,14 +43,19 @@ async function DashboardContent() {
             data={data.monthlyProduction}
             currentMonth={currentMonth}
           />
-          <AlertsPanel alerts={data.alerts} />
+          {/* En escritorio el panel no estira la fila: toma el alto del gráfico y se desplaza. */}
+          <div className="lg:relative">
+            <AlertsPanel alerts={data.alerts} className="lg:absolute lg:inset-0" />
+          </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
           <InventoryFlowChart
             className="lg:col-span-2"
             data={data.inventoryFlow.filter((m) => m.month < currentMonth)}
           />
-          <RecentActivity entries={data.activity} now={now} />
+          <div className="lg:relative">
+            <RecentActivity entries={data.activity} now={now} className="lg:absolute lg:inset-0" />
+          </div>
         </div>
       </div>
     </>

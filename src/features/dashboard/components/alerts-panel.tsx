@@ -14,9 +14,15 @@ export const ALERT_KIND: Record<
   late_purchase: { label: "Compra vencida", icon: TriangleAlert, tone: "text-status-pending" },
 };
 
-export function AlertsPanel({ alerts }: { alerts: DashboardAlert[] }) {
+export function AlertsPanel({
+  alerts,
+  className,
+}: {
+  alerts: DashboardAlert[];
+  className?: string;
+}) {
   return (
-    <section className="flex flex-col rounded-lg border bg-surface">
+    <section className={cn("flex flex-col rounded-lg border bg-surface", className)}>
       <header className="flex items-baseline justify-between px-5 pt-4 pb-2">
         <h2 className="text-sm font-semibold">Requiere atención</h2>
         <span className="tabular text-xs text-muted-foreground">{alerts.length} alertas</span>
@@ -26,7 +32,7 @@ export function AlertsPanel({ alerts }: { alerts: DashboardAlert[] }) {
           Todo en orden: no hay stock bajo ni órdenes demoradas.
         </p>
       ) : (
-        <ul className="divide-y">
+        <ul className="min-h-0 flex-1 divide-y overflow-y-auto">
           {alerts.map((alert, i) => {
             const meta = ALERT_KIND[alert.kind];
             const Icon = meta.icon;

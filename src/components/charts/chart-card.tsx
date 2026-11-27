@@ -47,8 +47,7 @@ export function ChartCard({
         </Button>
       </header>
       {legend && view === "chart" ? <div className="px-5 pt-2">{legend}</div> : null}
-      {/* El área del gráfico es una columna flexible: el gráfico puede crecer hasta llenar la tarjeta. */}
-      <div className="flex min-h-0 flex-1 flex-col px-2 pt-2 pb-3">
+      <div className="flex-1 px-2 pt-2 pb-3">
         {view === "chart" ? chart : <div className="max-h-72 overflow-auto px-3">{table}</div>}
       </div>
     </section>

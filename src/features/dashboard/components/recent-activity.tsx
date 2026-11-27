@@ -1,9 +1,18 @@
 import type { ActivityEntry } from "@/features/dashboard/types";
 import { formatDateTime, formatRelative } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-export function RecentActivity({ entries, now }: { entries: ActivityEntry[]; now: Date }) {
+export function RecentActivity({
+  entries,
+  now,
+  className,
+}: {
+  entries: ActivityEntry[];
+  now: Date;
+  className?: string;
+}) {
   return (
-    <section className="flex flex-col rounded-lg border bg-surface">
+    <section className={cn("flex flex-col rounded-lg border bg-surface", className)}>
       <header className="px-5 pt-4 pb-2">
         <h2 className="text-sm font-semibold">Actividad reciente</h2>
       </header>
@@ -12,7 +21,12 @@ export function RecentActivity({ entries, now }: { entries: ActivityEntry[]; now
           Cuando registres compras, órdenes o movimientos, vas a verlos acá.
         </p>
       ) : (
-        <ol className="divide-y">
+        // Se desplaza por dentro cuando el panel toma el alto del gráfico; tabIndex para el teclado.
+        <ol
+          aria-label="Actividad reciente"
+          tabIndex={0}
+          className="min-h-0 flex-1 divide-y overflow-y-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        >
           {entries.map((e) => (
             <li key={e.id} className="px-5 py-3">
               <p className="text-13">{e.summary}</p>

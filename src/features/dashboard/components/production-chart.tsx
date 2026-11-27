@@ -38,8 +38,7 @@ export function ProductionChart({
           : "Unidades buenas por mes"
       }
       chart={
-        <div className="relative h-64 w-full lg:h-auto lg:min-h-80 lg:flex-1">
-          {/* Posición absoluta: el contenedor mide el alto real de la tarjeta, no el del contenido. */}
+        <div className="relative h-64 w-full lg:h-72">
           <div className="absolute inset-0">
             <ResponsiveContainer>
               <BarChart
