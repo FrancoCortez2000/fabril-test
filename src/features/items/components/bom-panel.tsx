@@ -3,6 +3,7 @@
 import { ClipboardList, Pencil } from "lucide-react";
 import { useState } from "react";
 
+import { TableCard } from "@/components/data/table-card";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,30 +58,37 @@ export function BomPanel({
       })
     : [];
 
-  return (
-    <section aria-label="Receta" className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Receta</h2>
-        <Button variant="outline" onClick={() => setEditing(true)}>
-          <Pencil aria-hidden />
-          {bom ? "Editar receta" : "Crear receta"}
-        </Button>
-      </div>
+  const editButton = (
+    <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+      <Pencil aria-hidden />
+      {bom ? "Editar receta" : "Crear receta"}
+    </Button>
+  );
 
-      {bom ? (
-        <>
-          <p className="text-13 text-muted-foreground">
-            Rinde {formatQuantity(bom.outputQty, productUnit)}. Desperdicio por defecto:{" "}
-            {formatPercent(bom.defaultWastePct ?? bom.orgWastePct)}
-            {bom.defaultWastePct === null ? " (el de la fábrica)" : ""}.
-            {bom.notes ? ` ${bom.notes}` : ""}
-          </p>
+  return (
+    <div className="space-y-4">
+      <TableCard
+        title="Receta"
+        meta={bom ? `${bom.lines.length} materias primas` : undefined}
+        description={
+          bom ? (
+            <>
+              Rinde {formatQuantity(bom.outputQty, productUnit)}. Desperdicio por defecto:{" "}
+              {formatPercent(bom.defaultWastePct ?? bom.orgWastePct)}
+              {bom.defaultWastePct === null ? " (el de la fábrica)" : ""}.
+              {bom.notes ? ` ${bom.notes}` : ""}
+            </>
+          ) : undefined
+        }
+        actions={editButton}
+      >
+        {bom ? (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Materia prima</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
-                <TableHead className="text-right">Desperdicio</TableHead>
+                <TableHead className="hidden text-right sm:table-cell">Desperdicio</TableHead>
                 <TableHead className="text-right">Costo por unidad</TableHead>
               </TableRow>
             </TableHeader>
@@ -93,10 +101,10 @@ export function BomPanel({
                     <TableCell className="tabular text-right">
                       {formatQuantity(l.quantity, l.unitCode)}
                     </TableCell>
-                    <TableCell className="tabular text-right">
+                    <TableCell className="tabular hidden text-right text-muted-foreground sm:table-cell">
                       {l.wastePct === null ? "—" : formatPercent(l.wastePct)}
                     </TableCell>
-                    <TableCell className="tabular text-right">
+                    <TableCell className="tabular text-right font-medium">
                       {formatCurrency(Math.round(required * l.avgCost * 100) / 100)}
                     </TableCell>
                   </TableRow>
@@ -104,15 +112,17 @@ export function BomPanel({
               })}
             </TableBody>
           </Table>
-          <BomCalculatorPanel bom={bom} productUnit={productUnit} />
-        </>
-      ) : (
-        <EmptyState
-          icon={ClipboardList}
-          title="Este producto todavía no tiene receta"
-          description="Cargá las materias primas que lleva para calcular su costo estándar y planificar su fabricación."
-        />
-      )}
+        ) : (
+          <div className="p-5">
+            <EmptyState
+              icon={ClipboardList}
+              title="Este producto todavía no tiene receta"
+              description="Cargá las materias primas que lleva para calcular su costo estándar y planificar su fabricación."
+            />
+          </div>
+        )}
+      </TableCard>
+      {bom ? <BomCalculatorPanel bom={bom} productUnit={productUnit} /> : null}
 
       <BomEditorDialog
         open={editing}
@@ -121,6 +131,6 @@ export function BomPanel({
         initialValues={initialValues}
         materials={materials}
       />
-    </section>
+    </div>
   );
 }

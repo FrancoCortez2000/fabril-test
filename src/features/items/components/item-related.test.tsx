@@ -96,3 +96,42 @@ test("órdenes del producto: sin órdenes muestra un estado vacío", () => {
   render(<ProductOrders rows={[]} unitCode="u" />);
   expect(screen.getByText(/todavía no tiene órdenes/i)).toBeVisible();
 });
+
+describe("tarjetas y enlaces", () => {
+  test("cada bloque es una región con su título", () => {
+    render(
+      <>
+        <UsedIn unitCode="kg" rows={[]} />
+        <PurchaseHistory unitCode="kg" rows={[]} />
+        <ProductOrders unitCode="u" rows={[]} />
+      </>,
+    );
+    for (const name of ["Usado en", "Compras recientes", "Órdenes de producción"]) {
+      expect(screen.getByRole("region", { name })).toBeVisible();
+    }
+  });
+
+  test("el código de cada orden de producción enlaza a su ficha", () => {
+    render(
+      <ProductOrders
+        unitCode="u"
+        rows={[
+          {
+            id: "o1",
+            code: "OP-2026-0001",
+            status: "completed",
+            isDelayed: false,
+            goodQty: 98,
+            plannedQty: 100,
+            progressPct: 98,
+            plannedEndDate: "2026-06-03",
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "OP-2026-0001" })).toHaveAttribute(
+      "href",
+      "/app/produccion/o1",
+    );
+  });
+});

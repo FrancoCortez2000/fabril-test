@@ -47,7 +47,7 @@ export function RequirementsView({
           <TableRow>
             <TableHead>Materia prima</TableHead>
             <TableHead className="text-right">Requerido</TableHead>
-            <TableHead className="text-right">Disponible</TableHead>
+            <TableHead className="hidden text-right sm:table-cell">Disponible</TableHead>
             <TableHead className="text-right">Faltante</TableHead>
             <TableHead className="hidden text-right md:table-cell">Costo</TableHead>
           </TableRow>
@@ -59,7 +59,7 @@ export function RequirementsView({
               <TableCell className="tabular text-right">
                 {formatQuantity(r.required, r.unitCode)}
               </TableCell>
-              <TableCell className="tabular text-right">
+              <TableCell className="tabular hidden text-right sm:table-cell">
                 {formatQuantity(r.available, r.unitCode)}
               </TableCell>
               <TableCell className="tabular text-right">

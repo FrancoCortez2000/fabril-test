@@ -20,15 +20,6 @@ import { listCategories } from "@/features/items/queries";
 import { ITEM_LABELS, ITEM_PATHS, type ItemKind } from "@/features/items/types";
 import { requireSession } from "@/lib/auth/session";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
 /**
  * Ficha de un producto o materia prima. Lee la sesión y los parámetros de la ruta (datos del
  * request): va siempre dentro de un `<Suspense>`. Un id de otro tipo o de otra fábrica es un 404.
@@ -43,7 +34,7 @@ export async function ItemDetail({ kind, id }: { kind: ItemKind; id: string }) {
   const isProduct = kind === "finished_good";
   const [movements, categories, suppliers, usedIn, purchases, orders, bom, materials] =
     await Promise.all([
-      listItemMovements(orgId, id, 50),
+      listItemMovements(orgId, id, 10),
       listCategories(orgId, kind),
       isProduct ? Promise.resolve([]) : listSuppliers(orgId),
       isProduct ? Promise.resolve([]) : listUsedIn(orgId, id),
@@ -78,23 +69,15 @@ export async function ItemDetail({ kind, id }: { kind: ItemKind; id: string }) {
         {isProduct ? (
           <>
             <BomPanel itemId={id} productUnit={item.unitCode} bom={bom} materials={materials} />
-            <Section title="Órdenes de producción">
-              <ProductOrders rows={orders} unitCode={item.unitCode} />
-            </Section>
+            <ProductOrders rows={orders} unitCode={item.unitCode} />
           </>
         ) : (
           <>
-            <Section title="Usado en">
-              <UsedIn rows={usedIn} unitCode={item.unitCode} />
-            </Section>
-            <Section title="Compras recientes">
-              <PurchaseHistory rows={purchases} unitCode={item.unitCode} />
-            </Section>
+            <UsedIn rows={usedIn} unitCode={item.unitCode} />
+            <PurchaseHistory rows={purchases} unitCode={item.unitCode} />
           </>
         )}
-        <Section title="Movimientos">
-          <ItemMovements rows={movements} />
-        </Section>
+        <ItemMovements rows={movements} />
       </div>
     </>
   );
