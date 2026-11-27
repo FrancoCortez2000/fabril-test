@@ -2,7 +2,6 @@ import {
   Calculator,
   ClipboardList,
   Database,
-  Eye,
   Factory,
   FlaskConical,
   ShieldCheck,
@@ -199,11 +198,6 @@ export const BUILD_FACTS: { title: string; body: string; icon: LucideIcon }[] = 
     icon: Database,
   },
   {
-    title: "Demo abierta, pero de solo lectura",
-    body: "Sin cuenta ni contraseña. El visitante no tiene permisos de escritura en la base y nunca ve quién hizo cada cosa.",
-    icon: Eye,
-  },
-  {
     title: "Más de 1.000 pruebas automáticas",
     body: "Unitarias, de componentes y de SQL contra un Postgres real (PGlite): stock, costos, permisos y aislamiento entre fábricas.",
     icon: FlaskConical,
@@ -221,5 +215,3 @@ export const STACK = [
   "Vitest",
   "Playwright",
 ] as const;
-
-export const REPO_URL = "https://github.com/FrancoCortez2000/fabril-test";

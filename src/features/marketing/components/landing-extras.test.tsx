@@ -43,12 +43,14 @@ describe("sección «Cómo está hecho»", () => {
     for (const tech of STACK) expect(within(region).getByText(tech)).toBeVisible();
   });
 
-  test("enlaza al código en GitHub en una pestaña nueva y segura", () => {
+  test("tres tarjetas, sin la de la demo, sin enlace a GitHub ni «Lo que no se ve en la demo»", () => {
     render(<BuiltWith />);
-    const link = screen.getByRole("link", { name: /Ver el código en GitHub/ });
-    expect(link).toHaveAttribute("href", "https://github.com/FrancoCortez2000/fabril-test");
-    expect(link).toHaveAttribute("target", "_blank");
-    expect(link.getAttribute("rel")).toMatch(/noopener/);
+    const region = screen.getByRole("region", { name: "Cómo está hecho" });
+    expect(BUILD_FACTS).toHaveLength(3);
+    expect(within(region).queryByText(/Demo abierta/)).toBeNull();
+    expect(within(region).queryByRole("link", { name: /GitHub/ })).toBeNull();
+    expect(region.textContent).not.toMatch(/Lo que no se ve en la demo/);
+    expect(within(region).getByText(/Dónde vive la lógica/)).toBeVisible();
   });
 
   test("el encabezado de la landing lleva a la sección", () => {

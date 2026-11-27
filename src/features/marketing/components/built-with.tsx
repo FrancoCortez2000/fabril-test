@@ -1,7 +1,4 @@
-import { ExternalLink } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { BUILD_FACTS, REPO_URL, STACK } from "@/features/marketing/content";
+import { BUILD_FACTS, STACK } from "@/features/marketing/content";
 
 /** "Cómo está hecho": lo que la demo no puede mostrar (seguridad, base de datos y pruebas). */
 export function BuiltWith() {
@@ -12,25 +9,16 @@ export function BuiltWith() {
       className="scroll-mt-20 border-b"
     >
       <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="max-w-2xl">
-            <h2 id="como-esta-hecho-titulo" className="font-display text-4xl leading-tight">
-              Cómo está hecho
-            </h2>
-            <p className="mt-3 text-base text-muted-foreground">
-              Lo que no se ve en la demo: dónde vive la lógica, cómo se protegen los datos y cómo se
-              prueba.
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
-              Ver el código en GitHub
-              <ExternalLink aria-hidden />
-            </a>
-          </Button>
+        <div className="max-w-2xl">
+          <h2 id="como-esta-hecho-titulo" className="font-display text-4xl leading-tight">
+            Cómo está hecho
+          </h2>
+          <p className="mt-3 text-base text-muted-foreground">
+            Dónde vive la lógica, cómo se protegen los datos y cómo se prueba.
+          </p>
         </div>
 
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-10 grid gap-4 md:grid-cols-3">
           {BUILD_FACTS.map((fact) => {
             const Icon = fact.icon;
             return (
