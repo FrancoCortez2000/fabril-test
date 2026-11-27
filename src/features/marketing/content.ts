@@ -13,7 +13,6 @@ import {
 
 export const NAV_LINKS = [
   { href: "#funcionalidades", label: "Funcionalidades" },
-  { href: "#como-funciona", label: "Cómo funciona" },
   { href: "#como-esta-hecho", label: "Cómo está hecho" },
   { href: "#preguntas", label: "Preguntas" },
 ] as const;
@@ -110,21 +109,6 @@ export const MODULES: ModuleFeature[] = [
     screenshot: "/capturas/costos.png",
   },
 ];
-
-export const STEPS = [
-  {
-    title: "Cargás productos y recetas",
-    body: "Tus productos, las materias primas que usan y en qué cantidad, con su porcentaje de desperdicio.",
-  },
-  {
-    title: "Planificás y comprás lo que falta",
-    body: "Creás la orden de producción, FABRIL calcula los materiales y te dice qué hay que comprar antes de empezar.",
-  },
-  {
-    title: "Producís y el sistema se actualiza solo",
-    body: "Al iniciar se descuentan los materiales; al completar entran las unidades terminadas y queda registrado el costo real.",
-  },
-] as const;
 
 export const FAQ = [
   {

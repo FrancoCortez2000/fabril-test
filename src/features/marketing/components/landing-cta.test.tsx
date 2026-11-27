@@ -5,7 +5,7 @@ import { DemoSection } from "@/features/marketing/components/demo-section";
 import { Hero } from "@/features/marketing/components/hero";
 import { SiteFooter } from "@/features/marketing/components/site-footer";
 import { SiteHeader } from "@/features/marketing/components/site-header";
-import { FAQ, MODULES, STEPS } from "@/features/marketing/content";
+import { FAQ, MODULES } from "@/features/marketing/content";
 
 vi.mock("@/features/marketing/actions", () => ({ submitDemoRequest: vi.fn() }));
 
@@ -75,7 +75,7 @@ describe("contenido", () => {
   });
 
   test("no promete proveedores, reportes, CSV ni importación desde Excel", () => {
-    const text = JSON.stringify({ MODULES, STEPS, FAQ });
+    const text = JSON.stringify({ MODULES, FAQ });
     expect(text).not.toMatch(/proveedores|reportes|csv|excel|planilla/i);
   });
 });

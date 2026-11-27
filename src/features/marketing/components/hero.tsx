@@ -24,7 +24,7 @@ export function Hero() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="#como-funciona">Ver cómo funciona</a>
+              <a href="#funcionalidades">Ver funcionalidades</a>
             </Button>
           </div>
         </div>

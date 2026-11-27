@@ -5,7 +5,6 @@ import { BuiltWith } from "@/features/marketing/components/built-with";
 import { DemoSection } from "@/features/marketing/components/demo-section";
 import { Faq } from "@/features/marketing/components/faq";
 import { Hero } from "@/features/marketing/components/hero";
-import { HowItWorks } from "@/features/marketing/components/how-it-works";
 import { ModulesShowcase } from "@/features/marketing/components/modules-showcase";
 import { Problems } from "@/features/marketing/components/problems";
 import { SiteFooter } from "@/features/marketing/components/site-footer";
@@ -32,7 +31,6 @@ export default function LandingPage() {
         <Hero />
         <Problems />
         <ModulesShowcase />
-        <HowItWorks />
         <BuiltWith />
         <Faq />
         <DemoSection />

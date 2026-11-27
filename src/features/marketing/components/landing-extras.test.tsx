@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 
 import { BuiltWith } from "@/features/marketing/components/built-with";
+import { Faq } from "@/features/marketing/components/faq";
 import { Hero } from "@/features/marketing/components/hero";
+import { ModulesShowcase } from "@/features/marketing/components/modules-showcase";
 import { SiteHeader } from "@/features/marketing/components/site-header";
-import { BUILD_FACTS, FLOW, STACK } from "@/features/marketing/content";
+import { BUILD_FACTS, FLOW, NAV_LINKS, STACK } from "@/features/marketing/content";
 
 describe("diagrama del hero: cómo se conecta todo", () => {
   test("es una figura con título y los cuatro pasos en orden", () => {
@@ -59,5 +61,47 @@ describe("sección «Cómo está hecho»", () => {
       "href",
       "#como-esta-hecho",
     );
+  });
+});
+
+// El recorrido compra → orden → producción → costo ya lo cuenta el diagrama del hero.
+describe("sin secciones que se repitan", () => {
+  test("el menú no tiene «Cómo funciona» y cada enlace lleva a una sección que existe", () => {
+    render(<SiteHeader />);
+    const nav = screen.getByRole("navigation", { name: "Secciones" });
+    const links = within(nav).getAllByRole("link");
+    expect(links.map((l) => l.textContent)).toEqual([
+      "Funcionalidades",
+      "Cómo está hecho",
+      "Preguntas",
+    ]);
+    cleanup();
+
+    const { container } = render(
+      <>
+        <ModulesShowcase />
+        <BuiltWith />
+        <Faq />
+      </>,
+    );
+    for (const { href } of NAV_LINKS) {
+      expect(container.querySelector(href)).not.toBeNull();
+    }
+  });
+
+  test("el botón secundario del hero lleva a las funcionalidades", () => {
+    const { container } = render(<Hero />);
+    expect(screen.getByRole("link", { name: "Ver funcionalidades" })).toHaveAttribute(
+      "href",
+      "#funcionalidades",
+    );
+    expect(container.querySelector('a[href="#como-funciona"]')).toBeNull();
+  });
+
+  test("la intro de funcionalidades no vuelve a contar el recorrido del diagrama", () => {
+    render(<ModulesShowcase />);
+    const region = screen.getByRole("region", { name: /conectado/ });
+    expect(region.textContent).not.toMatch(/Una compra recibida suma stock/);
+    expect(within(region).getByText(/capturas son de la demo/i)).toBeVisible();
   });
 });

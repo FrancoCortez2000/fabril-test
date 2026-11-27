@@ -17,8 +17,8 @@ export function ModulesShowcase() {
             Todo lo que pasa en la planta, conectado
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            Una compra recibida suma stock, una orden iniciada consume materiales y una orden
-            completada ingresa producto terminado con su costo real. Sin cargar dos veces lo mismo.
+            Cinco módulos que comparten los mismos datos: lo que cargás en uno ya está en los demás.
+            Las capturas son de la demo, con la fábrica de ejemplo.
           </p>
         </div>
 
