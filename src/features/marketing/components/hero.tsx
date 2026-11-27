@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { BomCalculator } from "@/features/marketing/components/bom-calculator";
-import { ScreenshotFrame } from "@/features/marketing/components/screenshot-frame";
+import { FlowDiagram } from "@/features/marketing/components/flow-diagram";
 
 export function Hero() {
   return (
@@ -31,10 +31,7 @@ export function Hero() {
         <BomCalculator />
       </div>
       <div className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 lg:pb-24">
-        <ScreenshotFrame
-          label="Dashboard de FABRIL con datos de demostración"
-          src="/capturas/dashboard.png"
-        />
+        <FlowDiagram />
       </div>
     </section>
   );

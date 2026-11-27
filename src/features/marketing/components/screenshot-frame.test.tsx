@@ -47,10 +47,7 @@ test("la sección de funcionalidades muestra una captura por módulo", () => {
   }
 });
 
-test("el hero muestra la captura del dashboard", () => {
+test("el hero ya no muestra la captura del Inicio (es lo primero que se ve en la demo)", () => {
   render(<Hero />);
-  expect(screen.getByRole("img", { name: /Dashboard/ })).toHaveAttribute(
-    "src",
-    "/capturas/dashboard.png",
-  );
+  expect(screen.queryByRole("img", { name: /Dashboard/ })).toBeNull();
 });

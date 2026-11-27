@@ -1,6 +1,7 @@
 import { SkipLink } from "@/components/layout/skip-link";
 import type { Metadata } from "next";
 
+import { BuiltWith } from "@/features/marketing/components/built-with";
 import { DemoSection } from "@/features/marketing/components/demo-section";
 import { Faq } from "@/features/marketing/components/faq";
 import { Hero } from "@/features/marketing/components/hero";
@@ -32,6 +33,7 @@ export default function LandingPage() {
         <Problems />
         <ModulesShowcase />
         <HowItWorks />
+        <BuiltWith />
         <Faq />
         <DemoSection />
       </main>

@@ -1,8 +1,13 @@
 import {
   Calculator,
   ClipboardList,
+  Database,
+  Eye,
   Factory,
+  FlaskConical,
+  ShieldCheck,
   ShoppingCart,
+  Truck,
   Warehouse,
   type LucideIcon,
 } from "lucide-react";
@@ -10,6 +15,7 @@ import {
 export const NAV_LINKS = [
   { href: "#funcionalidades", label: "Funcionalidades" },
   { href: "#como-funciona", label: "Cómo funciona" },
+  { href: "#como-esta-hecho", label: "Cómo está hecho" },
   { href: "#preguntas", label: "Preguntas" },
 ] as const;
 
@@ -147,3 +153,73 @@ export const FAQ = [
     a: "No. FABRIL funciona en el navegador; sólo necesitás conexión a internet y tu usuario.",
   },
 ] as const;
+
+/**
+ * Diagrama del hero: qué pasa con el stock y el costo en cada paso. Sigue el ejemplo de la
+ * calculadora (Bidón 5 L azul: 0,25 kg de Polietileno AD por unidad + 3 % de desperdicio; había
+ * 200 kg y faltaban 57,5 kg para 1.000 unidades).
+ */
+export const FLOW: { title: string; body: string; result: string; icon: LucideIcon }[] = [
+  {
+    title: "Llega la compra",
+    body: "Recibís 500 kg de Polietileno AD a $ 1.000 el kilo.",
+    result: "Stock 700 kg · costo promedio al día",
+    icon: Truck,
+  },
+  {
+    title: "Planificás la orden",
+    body: "1.000 bidones: la receta pide 257,5 kg con el 3 % de desperdicio.",
+    result: "Alcanza: ya no falta material",
+    icon: ClipboardList,
+  },
+  {
+    title: "Producís",
+    body: "Al iniciar se descuentan los materiales; los partes suman 980 buenas y 20 defectuosas.",
+    result: "Quedan 442,5 kg de Polietileno AD",
+    icon: Factory,
+  },
+  {
+    title: "Cerrás con el costo real",
+    body: "Entran 980 bidones al stock, valorizados con lo que realmente se consumió.",
+    result: "$ 564 por unidad vs. $ 548 planificados",
+    icon: Calculator,
+  },
+];
+
+/** "Cómo está hecho": lo que la demo no muestra por sí sola. Todo verificable en el código. */
+export const BUILD_FACTS: { title: string; body: string; icon: LucideIcon }[] = [
+  {
+    title: "Cada fábrica, aislada en la base",
+    body: "Políticas de seguridad (RLS) en todas las tablas de Postgres: un usuario de otra fábrica no ve ni modifica nada, aunque arme el pedido a mano.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "La lógica crítica vive en la base",
+    body: "Recibir compras, consumir materiales y cerrar órdenes son funciones de la base que corren en una sola transacción: el stock nunca queda a medias.",
+    icon: Database,
+  },
+  {
+    title: "Demo abierta, pero de solo lectura",
+    body: "Sin cuenta ni contraseña. El visitante no tiene permisos de escritura en la base y nunca ve quién hizo cada cosa.",
+    icon: Eye,
+  },
+  {
+    title: "Más de 1.000 pruebas automáticas",
+    body: "Unitarias, de componentes y de SQL contra un Postgres real (PGlite): stock, costos, permisos y aislamiento entre fábricas.",
+    icon: FlaskConical,
+  },
+];
+
+export const STACK = [
+  "Next.js 16",
+  "TypeScript",
+  "Supabase",
+  "PostgreSQL",
+  "Tailwind CSS",
+  "shadcn/ui",
+  "Recharts",
+  "Vitest",
+  "Playwright",
+] as const;
+
+export const REPO_URL = "https://github.com/FrancoCortez2000/fabril-test";

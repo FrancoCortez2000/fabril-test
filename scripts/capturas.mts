@@ -71,7 +71,6 @@ async function rowHref(
 
 await page.goto(`${base}/demo`);
 await page.waitForURL("**/app");
-await shot("dashboard");
 
 await page.goto(`${base}/app/inventario`);
 await shot("inventario");
