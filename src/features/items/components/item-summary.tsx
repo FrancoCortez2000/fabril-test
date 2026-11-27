@@ -57,32 +57,92 @@ export function ItemSummary({ detail }: { detail: ItemDetail }) {
         )}
       </div>
 
-      {costing ? (
-        <section
-          aria-label="Costo estándar por unidad"
-          className="rounded-lg border bg-surface p-5"
-        >
-          <h2 className="text-sm font-semibold">Costo estándar por unidad</h2>
-          <dl className="mt-3 grid gap-x-8 gap-y-2 text-sm sm:max-w-sm">
-            <Row label="Materiales" value={costing.materials} />
-            <Row label="Mano de obra" value={costing.labor} />
-            <Row label="Gastos indirectos" value={costing.overhead} />
-            <div className="mt-1 flex items-baseline justify-between border-t pt-2 font-semibold">
-              <dt>Total</dt>
-              <dd className="tabular">{formatCurrency(costing.standard)}</dd>
-            </div>
-          </dl>
-        </section>
-      ) : null}
+      {costing ? <CostBreakdown costing={costing} salePrice={item.salePrice} /> : null}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: number }) {
+type Costing = NonNullable<ItemDetail["costing"]>;
+
+/** Colores de serie en orden fijo (tokens validados): la misma parte siempre del mismo color. */
+const PART_COLOR = ["bg-series-1", "bg-series-2", "bg-series-3", "bg-series-4"] as const;
+
+/**
+ * Desglose del costo estándar a todo el ancho: una barra fina con la composición y, debajo, cada
+ * parte con su monto y su porcentaje. Con precio de venta que cubre el costo, la barra reparte el
+ * precio (costo + ganancia); si no, reparte sólo el costo.
+ */
+function CostBreakdown({ costing, salePrice }: { costing: Costing; salePrice: number | null }) {
+  const profit =
+    salePrice !== null && salePrice > costing.standard ? salePrice - costing.standard : null;
+  const loss =
+    salePrice !== null && salePrice > 0 && salePrice < costing.standard
+      ? costing.standard - salePrice
+      : null;
+  const whole = profit !== null ? (salePrice as number) : costing.standard;
+  const parts = [
+    { label: "Materiales", value: costing.materials },
+    { label: "Mano de obra", value: costing.labor },
+    { label: "Gastos indirectos", value: costing.overhead },
+    ...(profit !== null ? [{ label: "Ganancia", value: profit }] : []),
+  ].map((p, i) => ({
+    ...p,
+    color: PART_COLOR[i]!,
+    share: whole > 0 ? (p.value / whole) * 100 : 0,
+  }));
+  const of = profit !== null ? "del precio de venta" : "del costo";
+  const summary = parts.map((p) => `${p.label} ${formatPercent(p.share, 1)}`).join(", ");
+
   return (
-    <div className="flex items-baseline justify-between gap-6">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="tabular">{formatCurrency(value)}</dd>
-    </div>
+    <section aria-label="Costo estándar por unidad" className="rounded-lg border bg-surface p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 className="text-sm font-semibold">Costo estándar por unidad</h2>
+        <p className="text-sm">
+          <span className="text-muted-foreground">Total </span>
+          <span className="font-semibold">{formatCurrency(costing.standard)}</span>
+        </p>
+      </div>
+
+      {/* Barra segmentada fina: 8 px, extremos redondeados y 2 px de separación entre partes. */}
+      <div
+        role="img"
+        aria-label={`Composición ${of}: ${summary}`}
+        className="mt-4 flex h-2 gap-0.5 overflow-hidden rounded-full"
+      >
+        {parts
+          .filter((p) => p.share > 0)
+          .map((p) => (
+            <div
+              key={p.label}
+              className={p.color}
+              style={{ flexBasis: `${p.share}%`, flexGrow: 0, flexShrink: 1 }}
+              title={`${p.label}: ${formatCurrency(p.value)} (${formatPercent(p.share, 1)})`}
+            />
+          ))}
+      </div>
+
+      <dl
+        className={`mt-4 grid grid-cols-2 gap-x-6 gap-y-4 ${parts.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}
+      >
+        {parts.map((p) => (
+          <div key={p.label} className="min-w-0">
+            <dt className="flex items-center gap-2 text-13 text-muted-foreground">
+              <span aria-hidden className={`size-2.5 shrink-0 rounded-sm ${p.color}`} />
+              {p.label}
+            </dt>
+            <dd className="mt-1 text-lg font-semibold">{formatCurrency(p.value)}</dd>
+            <dd className="text-xs text-muted-foreground">
+              <span className="tabular">{formatPercent(p.share, 1)}</span> {of}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {loss !== null ? (
+        <p className="mt-4 text-13 text-status-delayed">
+          Con el precio de venta actual se pierden {formatCurrency(loss)} por unidad.
+        </p>
+      ) : null}
+    </section>
   );
 }

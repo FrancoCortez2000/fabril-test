@@ -46,6 +46,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -138,6 +142,12 @@
   --chart-grid: #e3e6ea;
   --chart-highlight-stroke: #9a6e00;
 
+  /* Serie categórica en orden fijo (paleta de referencia dataviz, validada en claro y oscuro). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+
   --sidebar: #eceef1;
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--brand);
@@ -178,6 +188,11 @@
   --chart-5: #4b5563;
   --chart-grid: #262c34;
   --chart-highlight-stroke: #f2b71f;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
 
   --sidebar: #181c22;
   --sidebar-accent: #232931;
