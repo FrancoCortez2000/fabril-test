@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Marca de FABRIL (LogoMark) en claro sobre placa oscura: se ve en pestañas claras y oscuras. -->
+  <rect width="32" height="32" rx="7" fill="#1c2127"/>
+  <g transform="translate(4.04 2.2) scale(0.92)">
+    <path d="M1 23V13l8-6v6l8-6v6l8-6v16H1Z" fill="#f3f4f6"/>
+    <path d="M17 13l8-6v6Z" fill="#f2a900"/>
+    <rect x="5" y="16" width="3" height="7" fill="#1c2127"/>
+    <rect x="12" y="16" width="3" height="7" fill="#1c2127"/>
+  </g>
+</svg>
